@@ -190,6 +190,8 @@ input:focus { outline: none; border-color: var(--green); background: white; }
   font-family: inherit; font-size: 0.88em; font-weight: 700;
   cursor: pointer; text-align: center;
   transition: all 0.2s;
+  appearance: none; -webkit-appearance: none;
+  line-height: 1.4;
 }
 .type-btn .type-icon { display: block; font-size: 1.3em; margin-bottom: 3px; }
 .type-btn.active-perm  { border-color: var(--green); background: var(--green-lt); color: var(--green); }
@@ -434,14 +436,14 @@ input:focus { outline: none; border-color: var(--green); background: white; }
         </div>
 
         <div class="form-group">
-          <div class="form-label">라이선스 종류</div>
+          <div class="form-label">라이선스 종류 <span class="req">*</span></div>
           <div class="type-toggle">
-            <div class="type-btn active-perm" id="btnPerm" onclick="setLicType('permanent')">
+            <button type="button" class="type-btn active-perm" id="btnPerm" onclick="setLicType('permanent')">
               <span class="type-icon">♾️</span>영구 라이선스
-            </div>
-            <div class="type-btn" id="btnTrial" onclick="setLicType('trial')">
+            </button>
+            <button type="button" class="type-btn" id="btnTrial" onclick="setLicType('trial')">
               <span class="type-icon">⏳</span>기한부 (10일)
-            </div>
+            </button>
           </div>
         </div>
 
