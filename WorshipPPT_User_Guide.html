@@ -1,880 +1,1965 @@
-<!DOCTYPE html>
+DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>WorshipPPT 라이선스 관리</title>
-
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-<!-- EmailJS SDK -->
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-<script>
-  (function(){ emailjs.init({ publicKey: 'iUzaDFriDmi6NHDJw' }); })();
-  const EMAILJS_SERVICE_ID  = 'service_ko9yjli';
-  const EMAILJS_TEMPLATE_ID = 'template_b8ga97o';
-  const WORSHIP_GUIDE_URL   = 'https://jaeseolkang.github.io/worship-admin/WorshipPPT_User_Guide.html';
-</script>
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>예배PPT 관리 시스템 — 사용자 가이드</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Noto+Serif+KR:wght@400;700&display=swap" rel="stylesheet">
 <style>
-:root {
-  --green:      #2C5F2D;
-  --green-mid:  #3A7D3C;
-  --green-lt:   #D4EDDA;
-  --blue:       #1565C0;
-  --blue-lt:    #DBEAFE;
-  --orange:     #E65100;
-  --orange-lt:  #FFF3E0;
-  --red:        #B71C1C;
-  --red-lt:     #FDDEDE;
-  --gray100:    #F3F4F6;
-  --gray200:    #E5E7EB;
-  --gray600:    #4B5563;
-  --gray800:    #1F2937;
-}
-* { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
-body {
-  font-family: 'Malgun Gothic', -apple-system, BlinkMacSystemFont, sans-serif;
-  background: #f0f4f0;
-  color: var(--gray800);
-  min-height: 100vh;
-}
+  :root {
+    --green:       #2C5F2D;
+    --green-mid:   #3A7D3C;
+    --green-light: #D4EDDA;
+    --green-pale:  #EAF4EB;
+    --green-accent:#4CAF50;
+    --blue:        #1565C0;
+    --blue-light:  #DBEAFE;
+    --orange:      #D84315;
+    --orange-light:#FDE8DC;
+    --red:         #B71C1C;
+    --red-light:   #FDDEDE;
+    --gray-50:     #FFFFFF;
+    --gray-100:    #F3F4F6;
+    --gray-200:    #E5E7EB;
+    --gray-400:    #9CA3AF;
+    --gray-600:    #4B5563;
+    --gray-800:    #1F2937;
+    --text:        #111827;
+    --sidebar-w:   290px;
+  }
 
-/* ── 헤더 ── */
-header {
-  background: linear-gradient(135deg, var(--green) 0%, #1B3D1C 100%);
-  color: white;
-  padding: 14px 20px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.25);
-}
-header .logo { font-size: 1.3em; }
-header h1   { font-size: 1.05em; font-weight: 700; flex: 1; }
-.logout-btn {
-  background: rgba(255,255,255,0.15);
-  color: white;
-  border: 1.5px solid rgba(255,255,255,0.4);
-  border-radius: 8px;
-  padding: 6px 14px;
-  font-size: 0.82em;
-  cursor: pointer;
-  font-family: inherit;
-  font-weight: 700;
-  display: none;
-}
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: #FFFFFF;
+    color: var(--text);
+    display: flex;
+    min-height: 100vh;
+  }
 
-/* ── 로그인 ── */
-#loginScreen {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: calc(100vh - 52px);
-  padding: 24px;
-}
-.login-card {
-  background: white;
-  border-radius: 16px;
-  padding: 36px 28px;
-  width: 100%;
-  max-width: 380px;
-  box-shadow: 0 4px 24px rgba(44,95,45,0.12);
-  border-top: 4px solid var(--green);
-  text-align: center;
-}
-.login-card .icon { font-size: 3em; margin-bottom: 12px; }
-.login-card h2   { font-size: 1.2em; color: var(--green); margin-bottom: 6px; font-weight: 800; }
-.login-card p    { font-size: 0.85em; color: var(--gray600); margin-bottom: 20px; }
+  /* ── 사이드바 ── */
+  .sidebar {
+    width: var(--sidebar-w);
+    background: var(--green);
+    position: fixed;
+    top: 0; left: 0;
+    height: 100vh;
+    overflow-y: auto;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+  }
+  .sidebar-logo {
+    padding: 28px 24px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.12);
+  }
+  .sidebar-logo .app-name {
+    font-size: 15px; font-weight: 700; color: #fff;
+    letter-spacing: 0.03em; line-height: 1.4;
+  }
+  .sidebar-logo .app-sub {
+    font-size: 11px; color: rgba(255,255,255,0.6); margin-top: 4px;
+    letter-spacing: 0.05em; text-transform: uppercase;
+  }
+  .nav-section { padding: 6px 0; }
+  .nav-section-title {
+    font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.4);
+    letter-spacing: 0.12em; text-transform: uppercase; padding: 14px 24px 5px;
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 24px; color: rgba(255,255,255,0.75);
+    text-decoration: none; font-size: 12.5px; font-weight: 400;
+    transition: all 0.15s; border-left: 3px solid transparent; cursor: pointer;
+  }
+  .nav-item:hover { background: rgba(255,255,255,0.08); color: #fff; border-left-color: var(--green-accent); }
+  .nav-item.active { background: rgba(255,255,255,0.12); color: #fff; border-left-color: #fff; font-weight: 600; }
+  .nav-item .nav-num { font-size: 10px; font-weight: 700; color: var(--green-accent); min-width: 20px; }
 
-/* ── 메인 ── */
-#mainScreen { display: none; padding: 16px; max-width: 800px; margin: 0 auto; }
+  /* ── 메인 ── */
+  .main { margin-left: var(--sidebar-w); flex: 1; min-height: 100vh; }
 
-/* ── 공통 입력 ── */
-input[type="password"], input[type="text"],
-input[type="email"], input[type="tel"] {
-  width: 100%;
-  padding: 11px 14px;
-  border: 2px solid var(--gray200);
-  border-radius: 10px;
-  font-size: 0.95em;
-  font-family: inherit;
-  background: #fafafa;
-  transition: border-color 0.2s;
-}
-input:focus { outline: none; border-color: var(--green); background: white; }
+  /* ── 히어로 ── */
+  .hero {
+    background: linear-gradient(135deg, var(--green) 0%, #1B3D1C 60%, #0D2B0E 100%);
+    padding: 72px 64px 64px; position: relative; overflow: hidden;
+  }
+  .hero::before {
+    content: ''; position: absolute; top: -80px; right: -80px;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(129,199,132,0.15) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(129,199,132,0.2); border: 1px solid rgba(129,199,132,0.4);
+    color: var(--green-accent); font-size: 11px; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase; padding: 5px 12px;
+    border-radius: 100px; margin-bottom: 20px;
+  }
+  .hero h1 {
+    font-family: 'Noto Serif KR', serif; font-size: 40px; font-weight: 700;
+    color: #fff; line-height: 1.25; margin-bottom: 14px;
+  }
+  .hero-sub {
+    font-size: 16px; color: rgba(255,255,255,0.65); font-weight: 300;
+    margin-bottom: 36px; max-width: 520px; line-height: 1.7;
+  }
+  .hero-chips { display: flex; gap: 10px; flex-wrap: wrap; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.85); font-size: 12px; font-weight: 500;
+    padding: 6px 14px; border-radius: 100px;
+  }
 
-/* ── 버튼 ── */
-.btn {
-  padding: 12px 20px;
-  border: none;
-  border-radius: 10px;
-  font-size: 0.95em;
-  font-weight: 700;
-  font-family: inherit;
-  cursor: pointer;
-  transition: opacity 0.15s;
-  width: 100%;
-}
-.btn:hover { opacity: 0.88; }
-.btn-green  { background: linear-gradient(135deg, var(--green), #4CAF50); color: white; }
-.btn-blue   { background: var(--blue);   color: white; }
-.btn-orange { background: var(--orange); color: white; }
-.btn-red    { background: var(--red);    color: white; }
+  /* ── 콘텐츠 ── */
+  .content { padding: 0 64px 80px; background: #FFFFFF; }
 
-.btn-sm {
-  padding: 7px 13px;
-  font-size: 0.8em;
-  width: auto;
-  border-radius: 8px;
-  border: none;
-  cursor: pointer;
-  font-weight: 700;
-  font-family: inherit;
-  transition: opacity 0.15s;
-}
-.btn-sm:hover { opacity: 0.85; }
-.btn-sm-blue   { background: var(--blue);   color: white; }
-.btn-sm-orange { background: var(--orange); color: white; }
-.btn-sm-red    { background: var(--red);    color: white; }
-.btn-sm-green  { background: var(--green);  color: white; }
-.btn-sm-gray   { background: var(--gray100); color: var(--gray600); border: 1.5px solid var(--gray200); }
+  /* ── 섹션 ── */
+  .section { padding-top: 68px; }
+  .section-header {
+    display: flex; align-items: center; gap: 16px;
+    margin-bottom: 28px; padding-bottom: 18px;
+    border-bottom: 2px solid #D4EDDA;
+  }
+  .section-num {
+    width: 44px; height: 44px; background: var(--green); color: #fff;
+    font-size: 16px; font-weight: 900; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .section-title {
+    font-family: 'Noto Serif KR', serif; font-size: 24px;
+    font-weight: 700; color: var(--green);
+  }
+  .section-title small {
+    display: block; font-family: 'Noto Sans KR', sans-serif;
+    font-size: 13px; font-weight: 400; color: var(--gray-600); margin-top: 2px;
+  }
+  .sub-section { margin-bottom: 36px; }
+  .sub-title {
+    font-size: 16px; font-weight: 700; color: var(--green);
+    margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
+  }
+  .sub-title::before {
+    content: ''; display: inline-block; width: 4px; height: 18px;
+    background: var(--green-accent); border-radius: 2px;
+  }
+  p.body-text { font-size: 14px; line-height: 1.8; color: var(--gray-800); margin-bottom: 12px; }
 
-/* ── 메시지 ── */
-.msg { font-size: 0.87em; min-height: 1.2em; margin-top: 8px; font-weight: 600; }
-.msg.ok    { color: var(--green); }
-.msg.error { color: var(--red); }
-.msg.info  { color: var(--blue); }
+  /* ── 정보 박스 ── */
+  .info-box {
+    display: flex; gap: 8px; padding: 13px 16px;
+    border-radius: 10px; margin: 12px 0; font-size: 13.5px; line-height: 1.6;
+  }
+  .info-box .icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+  .info-box.green  { background: var(--green-light); border-left: 3px solid var(--green); color: #1B3D1C; }
+  .info-box.blue   { background: var(--blue-light);  border-left: 3px solid var(--blue);  color: #0D2B6E; }
+  .info-box.orange { background: var(--orange-light);border-left: 3px solid var(--orange);color: #4A1F00; }
+  .info-box.red    { background: var(--red-light);   border-left: 3px solid var(--red);   color: #4A0000; }
+  .info-box strong { font-weight: 700; }
 
-/* ── 섹션 카드 ── */
-.section-card {
-  background: white;
-  border-radius: 14px;
-  padding: 18px;
-  margin-bottom: 14px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.07);
-}
-.section-title {
-  font-size: 1em;
-  font-weight: 800;
-  color: var(--green);
-  margin-bottom: 14px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
+  /* ── 스텝 ── */
+  .steps { display: flex; flex-direction: column; gap: 8px; margin: 14px 0; }
+  .step {
+    display: flex; gap: 16px; align-items: flex-start;
+    padding: 14px 18px; background: #fff;
+    border: 1px solid var(--gray-200); border-radius: 10px;
+    transition: box-shadow 0.2s;
+  }
+  .step:hover { box-shadow: 0 2px 12px rgba(44,95,45,0.1); }
+  .step-num {
+    width: 28px; height: 28px; background: var(--green); color: #fff;
+    font-size: 12px; font-weight: 700; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .step-content .step-title { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+  .step-content .step-desc  { font-size: 13px; color: var(--gray-600); line-height: 1.6; }
 
-/* ── 발급 폼 ── */
-.issue-form { display: flex; flex-direction: column; gap: 12px; }
-.form-row   { display: flex; gap: 10px; }
-.form-row > * { flex: 1; }
-.form-group { display: flex; flex-direction: column; gap: 5px; }
-.form-label { font-size: 0.8em; font-weight: 700; color: var(--gray600); padding-left: 2px; }
-.form-label .req { color: var(--red); margin-left: 2px; }
+  /* ── 테이블 ── */
+  .guide-table {
+    width: 100%; border-collapse: collapse; font-size: 13.5px;
+    margin: 14px 0; border-radius: 10px; overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
+  .guide-table th {
+    background: var(--green); color: #fff; font-weight: 600;
+    padding: 10px 14px; text-align: left; font-size: 13px;
+  }
+  .guide-table td {
+    padding: 10px 14px; border-bottom: 1px solid var(--gray-200);
+    vertical-align: top; line-height: 1.6; color: #111827; font-size: 13.5px;
+  }
+  .guide-table tr:last-child td { border-bottom: none; }
+  .guide-table tr:nth-child(odd) td  { background: #ffffff; }
+  .guide-table tr:nth-child(even) td { background: #F9FAFB; }
+  .guide-table .key { font-weight: 700; color: #1B5E20; }
+  .guide-table code {
+    font-family: 'Courier New', monospace; background: var(--gray-100);
+    padding: 1px 6px; border-radius: 4px; font-size: 12px; color: var(--blue);
+  }
 
-/* ── 라이선스 종류 토글 ── */
-.type-toggle { display: flex; gap: 8px; }
-.type-btn {
-  flex: 1; padding: 11px 8px;
-  border: 2px solid var(--gray200);
-  border-radius: 10px;
-  background: #fafafa;
-  color: #999;
-  font-family: inherit; font-size: 0.88em; font-weight: 700;
-  cursor: pointer; text-align: center;
-  transition: all 0.2s;
-  appearance: none; -webkit-appearance: none;
-  line-height: 1.4;
-}
-.type-btn .type-icon { display: block; font-size: 1.3em; margin-bottom: 3px; }
-.type-btn.active-perm  { border-color: var(--green); background: var(--green-lt); color: var(--green); }
-.type-btn.active-trial { border-color: var(--orange); background: var(--orange-lt); color: var(--orange); }
+  /* ── 흐름 카드 ── */
+  .flow-grid {
+    display: grid; grid-template-columns: repeat(5, 1fr);
+    gap: 0; margin: 18px 0; border-radius: 12px; overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+  }
+  .flow-card { padding: 20px 14px; text-align: center; position: relative; }
+  .flow-card:nth-child(odd)  { background: #D4EDDA; }
+  .flow-card:nth-child(even) { background: #C3E6CB; }
+  .flow-card::after {
+    content: '›'; position: absolute; right: -6px; top: 50%;
+    transform: translateY(-50%); font-size: 22px; color: #2C5F2D; z-index: 2;
+  }
+  .flow-card:last-child::after { display: none; }
+  .flow-num  { font-size: 10px; font-weight: 700; color: #1B4332; letter-spacing: 0.08em; margin-bottom: 7px; }
+  .flow-title { font-size: 13px; font-weight: 700; color: #1e3a5f; margin-bottom: 5px; line-height: 1.3; }
+  .flow-desc  { font-size: 11px; color: #1e3a5f; line-height: 1.5; }
 
-/* 만료일 미리보기 */
-#expiresPreview {
-  display: none;
-  background: var(--orange-lt);
-  border: 1.5px solid var(--orange);
-  border-radius: 8px;
-  padding: 8px 14px;
-  font-size: 0.82em;
-  color: var(--orange);
-  font-weight: 600;
-}
-#expiresPreview.show { display: block; }
+  /* ── PPT 카드 ── */
+  .ppt-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 18px 0; }
+  .ppt-card {
+    background: #fff; border: 1px solid var(--gray-200); border-radius: 12px;
+    padding: 20px 18px; border-top: 4px solid var(--green);
+    transition: box-shadow 0.2s, transform 0.2s;
+  }
+  .ppt-card:hover { box-shadow: 0 4px 20px rgba(44,95,45,0.12); transform: translateY(-2px); }
+  .ppt-icon  { font-size: 26px; margin-bottom: 8px; }
+  .ppt-title { font-size: 14px; font-weight: 700; color: var(--green); margin-bottom: 3px; }
+  .ppt-file  { font-size: 11px; color: var(--gray-600); font-family: monospace; margin-bottom: 8px; }
+  .ppt-desc  { font-size: 13px; color: var(--gray-800); line-height: 1.6; }
 
-/* ── 발급 결과 ── */
-#newKeyResult {
-  display: none;
-  margin-top: 14px;
-  background: var(--green-lt);
-  border: 1.5px solid #4CAF50;
-  border-radius: 10px;
-  padding: 14px;
-}
-.key-display {
-  font-family: 'Consolas', monospace;
-  font-size: 1.1em; font-weight: 700;
-  color: #1B5E20; letter-spacing: 2px;
-  text-align: center; margin: 8px 0;
-  word-break: break-all;
-}
+  /* ── 성경 약자표 ── */
+  .bible-section-label {
+    font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 4px 12px; border-radius: 100px; display: inline-block; margin: 16px 0 7px;
+  }
+  .bible-section-label.ot { background: #D4EDDA; color: #1B5E20; }
+  .bible-section-label.nt { background: #DBEAFE; color: #1e3a5f; }
+  .bible-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-bottom: 4px; }
+  .bible-item {
+    display: flex; align-items: center; gap: 7px; padding: 6px 9px;
+    background: #fff; border: 1px solid var(--gray-200); border-radius: 6px; font-size: 12.5px;
+  }
+  .bible-item.ot { border-left: 3px solid #4CAF50; }
+  .bible-item.nt { border-left: 3px solid #1D4ED8; }
+  .bible-abbr { font-weight: 700; color: var(--green); font-size: 13px; min-width: 26px; }
+  .bible-item.nt .bible-abbr { color: #1e3a5f; }
+  .bible-name { color: #1F2937; font-size: 12px; }
 
-/* ── 통계 바 ── */
-.stat-bar { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
-.stat-item {
-  background: white; border-radius: 10px;
-  padding: 10px 12px; text-align: center; flex: 1; min-width: 60px;
-  box-shadow: 0 1px 6px rgba(0,0,0,0.06);
-  border-top: 3px solid var(--green);
-}
-.stat-item .num { font-size: 1.4em; font-weight: 900; color: var(--green); }
-.stat-item .lbl { font-size: 0.7em; color: var(--gray600); margin-top: 2px; }
-.num-orange { color: var(--orange) !important; }
-.num-red    { color: var(--red)    !important; }
-.num-blue   { color: var(--blue)   !important; }
-.num-gray   { color: #aaa          !important; }
+  /* ── 요구사항 카드 ── */
+  .req-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 14px 0; }
+  .req-card {
+    display: flex; gap: 12px; padding: 14px; background: #fff;
+    border: 1px solid var(--gray-200); border-radius: 10px; align-items: flex-start;
+  }
+  .req-icon  { font-size: 22px; flex-shrink: 0; }
+  .req-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+  .req-desc  { font-size: 12.5px; color: var(--gray-600); line-height: 1.5; }
 
-/* ── 탭 바 ── */
-.tab-bar { display: flex; gap: 8px; margin-bottom: 14px; }
-.tab-btn {
-  flex: 1; padding: 10px;
-  border: 2px solid var(--gray200);
-  border-radius: 10px;
-  background: white;
-  font-size: 0.88em; font-weight: 700;
-  cursor: pointer; font-family: inherit;
-  color: var(--gray600);
-  transition: all 0.2s;
-}
-.tab-btn.active { border-color: var(--green); background: var(--green); color: white; }
+  /* ── 입력 카드 ── */
+  .input-cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 14px 0; }
+  .input-card {
+    padding: 14px 16px; background: #fff; border: 1px solid var(--gray-200);
+    border-radius: 10px; border-left: 4px solid var(--green);
+  }
+  .input-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+  .input-card-name   { font-size: 14px; font-weight: 700; color: var(--green); }
+  .input-card-badge  { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 100px; }
+  .badge-num   { background: #E3F2FD; color: var(--blue); }
+  .badge-text  { background: var(--green-light); color: var(--green); }
+  .badge-fixed { background: var(--gray-100); color: var(--gray-600); }
+  .badge-multi { background: var(--orange-light); color: var(--orange); }
+  .input-card-example {
+    font-family: monospace; font-size: 12px; background: var(--gray-100);
+    padding: 5px 10px; border-radius: 5px; color: var(--blue); margin-top: 5px;
+  }
+  .input-card-desc { font-size: 12.5px; color: var(--gray-600); line-height: 1.5; }
 
-/* ── 검색 ── */
-.search-wrap { position: relative; margin-bottom: 12px; }
-.search-wrap input { padding-left: 40px; }
-.search-icon {
-  position: absolute; left: 13px; top: 50%;
-  transform: translateY(-50%); color: #aaa; font-size: 1.1em; pointer-events: none;
-}
+  /* ── 폴더 트리 ── */
+  .folder-tree {
+    background: #F8FAFC; border: 1px solid #E5E7EB; border-radius: 10px;
+    padding: 18px 22px; font-family: 'Courier New', monospace;
+    font-size: 13px; color: #1F2937; line-height: 2; margin: 12px 0;
+  }
+  .folder-tree .folder  { color: #166534; font-weight: 700; }
+  .folder-tree .file    { color: #1D4ED8; }
+  .folder-tree .comment { color: #6B7280; }
 
-/* ── 필터 ── */
-.filter-row { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
-.filter-btn {
-  padding: 6px 12px; border-radius: 20px;
-  border: 1.5px solid var(--gray200); background: white;
-  font-size: 0.78em; cursor: pointer;
-  font-family: inherit; font-weight: 700; color: var(--gray600);
-  transition: all 0.15s;
-}
-.filter-btn.on         { background: var(--green);  color: white; border-color: var(--green); }
-.filter-btn.on-orange  { background: var(--orange); color: white; border-color: var(--orange); }
-.filter-btn.on-red     { background: var(--red);    color: white; border-color: var(--red); }
+  /* ── FAQ ── */
+  .faq-item { margin-bottom: 10px; border: 1px solid var(--gray-200); border-radius: 10px; overflow: hidden; }
+  .faq-q {
+    display: flex; align-items: center; gap: 12px; padding: 14px 18px;
+    background: #fff; cursor: pointer; font-size: 14px; font-weight: 600;
+    color: var(--text); transition: background 0.15s; user-select: none; list-style: none;
+  }
+  .faq-q:hover { background: var(--green-pale); }
+  .faq-q::marker { display: none; }
+  .faq-badge {
+    background: var(--green); color: #fff; font-size: 11px;
+    font-weight: 700; padding: 2px 8px; border-radius: 100px; flex-shrink: 0;
+  }
+  .faq-arrow { margin-left: auto; font-size: 12px; color: var(--gray-400); transition: transform 0.2s; }
+  details[open] .faq-arrow { transform: rotate(180deg); }
+  .faq-a {
+    padding: 14px 20px 16px; background: var(--green-pale);
+    font-size: 13.5px; line-height: 1.75; color: var(--gray-800);
+    border-top: 1px solid var(--green-light);
+  }
 
-/* ── 라이선스 카드 ── */
-#licenseList { display: flex; flex-direction: column; gap: 10px; }
-.lic-card {
-  background: #fafafa;
-  border: 1.5px solid var(--gray200);
-  border-radius: 12px;
-  padding: 14px 16px;
-  border-left: 4px solid var(--green);
-}
-.lic-card.active-card  { border-color: #4CAF50; background: #f1f8f1; }
-.lic-card.trial-card   { border-left-color: var(--orange); }
-.lic-card.expired-card { border-left-color: var(--red); background: #fff8f8; }
+  /* ── NEW 배지 ── */
+  .new-badge {
+    display: inline-block; background: #E53E3E; color: #fff;
+    font-size: 9px; font-weight: 700; padding: 1px 6px; border-radius: 100px;
+    letter-spacing: 0.05em; vertical-align: middle; margin-left: 5px;
+  }
 
-.lic-card-header {
-  display: flex; align-items: center;
-  justify-content: space-between; gap: 8px;
-  margin-bottom: 8px; flex-wrap: wrap;
-}
-.lic-key {
-  font-family: 'Consolas', monospace;
-  font-size: 0.92em; font-weight: 700;
-  color: #1B5E20; letter-spacing: 1px;
-  word-break: break-all; cursor: pointer;
-}
-.badge-row { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; }
-.badge {
-  padding: 3px 10px; border-radius: 20px;
-  font-size: 0.72em; font-weight: 700; white-space: nowrap;
-}
-.badge-active   { background: var(--green-lt); color: var(--green); }
-.badge-inactive { background: var(--gray100);  color: #888; }
-.badge-perm     { background: var(--blue-lt);  color: var(--blue); }
-.badge-trial    { background: var(--orange-lt);color: var(--orange); }
-.badge-expired  { background: var(--red-lt);   color: var(--red); }
+  /* ── 태그 ── */
+  .tag {
+    display: inline-block; font-size: 11px; font-weight: 600;
+    padding: 2px 9px; border-radius: 100px; margin: 2px 2px;
+  }
+  .tag-green  { background: var(--green-light); color: var(--green); }
+  .tag-blue   { background: var(--blue-light); color: var(--blue); }
+  .tag-orange { background: var(--orange-light); color: var(--orange); }
 
-.lic-info { font-size: 0.82em; color: var(--gray600); margin-bottom: 3px; }
-.lic-info span { color: var(--gray800); font-weight: 600; }
-.expired-text { color: var(--red) !important; font-weight: 700 !important; }
-.soon-text    { color: var(--orange) !important; font-weight: 700 !important; }
+  /* ── 스크롤바 ── */
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 2px; }
 
-.divider { border: none; border-top: 1px solid var(--gray200); margin: 8px 0; }
+  /* ── 반응형 ── */
+  @media (max-width: 900px) {
+    .sidebar { display: none; }
+    .main { margin-left: 0; }
+    .hero { padding: 40px 24px; }
+    .content { padding: 0 24px 60px; }
+    .flow-grid { grid-template-columns: 1fr; }
+    .flow-card::after { display: none; }
+    .ppt-cards { grid-template-columns: 1fr; }
+    .bible-grid { grid-template-columns: repeat(2, 1fr); }
+    .input-cards { grid-template-columns: 1fr; }
+    .req-grid { grid-template-columns: 1fr; }
+  }
 
-.lic-buyer { display: flex; flex-direction: column; gap: 7px; margin: 6px 0; }
-.lic-buyer-row { display: flex; align-items: center; gap: 8px; }
-.lic-buyer-label { font-size: 0.75em; font-weight: 700; color: #888; white-space: nowrap; width: 50px; flex-shrink: 0; }
-.lic-buyer input {
-  flex: 1; padding: 7px 10px;
-  border: 1.5px solid var(--gray200); border-radius: 8px;
-  font-size: 0.85em; font-family: inherit;
-  background: #fafafa;
-}
-.lic-buyer input:focus { outline: none; border-color: var(--green); background: white; }
-.lic-actions { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 10px; }
-
-/* ── 메일 결과 ── */
-.mail-result {
-  margin-top: 8px; padding: 8px 12px;
-  border-radius: 8px; font-size: 0.82em; font-weight: 700;
-  background: var(--gray100); display: none;
-}
-
-/* ── 로딩 / 빈 상태 ── */
-.loading { text-align: center; color: #aaa; padding: 28px; font-size: 0.9em; }
-#listMsg { font-size: 0.84em; color: var(--gray600); margin-bottom: 10px; }
-#refreshBtn {
-  background: none; border: none; font-size: 1.1em;
-  cursor: pointer; color: var(--green); padding: 4px 6px;
-}
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .hero h1, .hero-sub, .hero-chips { animation: fadeUp 0.5s ease both; }
+  .hero-sub   { animation-delay: 0.1s; }
+  .hero-chips { animation-delay: 0.2s; }
 </style>
 </head>
 <body>
 
-<header>
-  <span class="logo">🛡️</span>
-  <h1>WorshipPPT 라이선스 관리</h1>
-  <button class="logout-btn" id="logoutBtn" onclick="logout()">로그아웃</button>
-</header>
-
-<!-- ── 로그인 ── -->
-<div id="loginScreen">
-  <div class="login-card">
-    <div class="icon">🔐</div>
-    <h2>관리자 로그인</h2>
-    <p>관리자 비밀번호를 입력하세요</p>
-    <input type="password" id="pwInput" placeholder="비밀번호"
-           onkeydown="if(event.key==='Enter') login()" autocomplete="current-password">
-    <div class="msg" id="loginMsg"></div>
-    <button class="btn btn-green" style="margin-top:14px;" onclick="login()">확인</button>
+<!-- 사이드바 -->
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <div class="app-name">⛪ 예배PPT 관리 시스템</div>
+    <div class="app-sub">사용자 가이드</div>
   </div>
-</div>
-
-<!-- ── 메인 ── -->
-<div id="mainScreen">
-
-  <!-- 탭 -->
-  <div class="tab-bar">
-    <button class="tab-btn active" id="tab1" onclick="switchTab(1)">📋 라이선스 목록</button>
-    <button class="tab-btn"        id="tab2" onclick="switchTab(2)">🔑 키 발급</button>
+  <div class="nav-section">
+    <div class="nav-section-title">시작하기</div>
+    <a class="nav-item" href="#ch1"><span class="nav-num">01</span>이 프로그램은 무엇인가요?</a>
+    <a class="nav-item" href="#ch2"><span class="nav-num">02</span>설치 및 초기 설정</a>
   </div>
+  <div class="nav-section">
+    <div class="nav-section-title">매주 사용</div>
+    <a class="nav-item" href="#ch3"><span class="nav-num">03</span>매주 예배 준비 흐름</a>
+    <a class="nav-item" href="#ch4"><span class="nav-num">04</span>예배순서 만들기</a>
+    <a class="nav-item" href="#ch5"><span class="nav-num">05</span>배경 이미지 설정</a>
+    <a class="nav-item" href="#ch6"><span class="nav-num">06</span>매주 예배 내용 입력하기</a>
+    <a class="nav-item" href="#ch7"><span class="nav-num">07</span>PPT 생성 및 저장</a>
+    <a class="nav-item" href="#ch8"><span class="nav-num">08</span>예배 시작하기</a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-title">도움말</div>
+    <a class="nav-item" href="#ch9"><span class="nav-num">09</span>검색 기능 사용하기</a>
+    <a class="nav-item" href="#ch10"><span class="nav-num">10</span>찬양목록 관리하기</a>
+    <a class="nav-item" href="#ch11"><span class="nav-num">11</span>새 찬양 PPT 만들기</a>
+    <a class="nav-item" href="#ch12"><span class="nav-num">12</span>기존 찬양 수정하기</a>
+    <a class="nav-item" href="#ch13"><span class="nav-num">FAQ</span>자주 묻는 질문</a>
+  </div>
+</nav>
 
-  <!-- ── 탭1: 목록 ── -->
-  <div id="panel1">
+<!-- 메인 -->
+<main class="main">
 
-    <!-- 통계 -->
-    <div class="stat-bar">
-      <div class="stat-item"><div class="num" id="statTotal">-</div><div class="lbl">전체</div></div>
-      <div class="stat-item"><div class="num num-blue" id="statActive">-</div><div class="lbl">활성</div></div>
-      <div class="stat-item"><div class="num num-gray" id="statInactive">-</div><div class="lbl">미사용</div></div>
-      <div class="stat-item"><div class="num" id="statPerm">-</div><div class="lbl">영구</div></div>
-      <div class="stat-item"><div class="num num-orange" id="statTrial">-</div><div class="lbl">기한부</div></div>
-      <div class="stat-item"><div class="num num-red" id="statExpired">-</div><div class="lbl">만료</div></div>
-    </div>
-
-    <div class="section-card">
-      <div class="search-wrap">
-        <span class="search-icon">🔍</span>
-        <input type="text" id="searchInput"
-               placeholder="키 / 이메일 / 이름 / 전화번호 검색"
-               oninput="renderList()">
-      </div>
-      <div class="filter-row">
-        <button class="filter-btn on" id="filterAll"     onclick="setFilter('all')">전체</button>
-        <button class="filter-btn"    id="filterActive"  onclick="setFilter('active')">✅ 활성</button>
-        <button class="filter-btn"    id="filterInact"   onclick="setFilter('inactive')">⬜ 미사용</button>
-        <button class="filter-btn"    id="filterPerm"    onclick="setFilter('perm')">♾️ 영구</button>
-        <button class="filter-btn"    id="filterTrial"   onclick="setFilter('trial')">⏳ 기한부</button>
-        <button class="filter-btn"    id="filterExpired" onclick="setFilter('expired')">❌ 만료</button>
-        <button id="refreshBtn" onclick="loadLicenses()" title="새로고침">🔄</button>
-      </div>
-      <div id="listMsg">불러오는 중...</div>
-      <div id="licenseList"></div>
+  <!-- 히어로 -->
+  <div class="hero">
+    <div class="hero-badge">⛪ User Guide</div>
+    <h1>예배PPT<br>관리 시스템</h1>
+    <p class="hero-sub">설치부터 매주 예배 준비까지 — 교회 담당자를 위한 완전 가이드</p>
+    <div class="hero-chips">
+      <span class="chip">📋 교회 담당자용</span>
+      <span class="chip">📅 매주 사용</span>
+      <span class="chip">💻 Windows 전용</span>
+      <span class="chip">✨ 최신판</span>
     </div>
   </div>
 
-  <!-- ── 탭2: 키 발급 ── -->
-  <div id="panel2" style="display:none;">
-    <div class="section-card">
-      <div class="section-title">🔑 새 라이선스 키 발급</div>
-      <div class="issue-form">
+  <div class="content">
 
-        <div class="form-row">
-          <div class="form-group">
-            <div class="form-label">구매자 이름</div>
-            <input type="text" id="newName" placeholder="홍길동" maxlength="30">
-          </div>
-          <div class="form-group">
-            <div class="form-label">이메일 <span class="req">*</span></div>
-            <input type="email" id="newEmail" placeholder="example@email.com"
-                   onkeydown="if(event.key==='Enter') issueKey()">
-          </div>
-        </div>
-
-        <div class="form-group">
-          <div class="form-label">전화번호</div>
-          <input type="tel" id="newPhone" placeholder="010-0000-0000"
-                 maxlength="13" oninput="formatPhone(this)">
-        </div>
-
-        <div class="form-group">
-          <div class="form-label">라이선스 종류 <span class="req">*</span></div>
-          <div class="type-toggle">
-            <button type="button" class="type-btn active-perm" id="btnPerm" onclick="setLicType('permanent')">
-              <span class="type-icon">♾️</span>영구 라이선스
-            </button>
-            <button type="button" class="type-btn" id="btnTrial" onclick="setLicType('trial')">
-              <span class="type-icon">⏳</span>기한부 (10일)
-            </button>
-          </div>
-        </div>
-
-        <div id="expiresPreview">
-          📅 발행 즉시 만료일 설정: <span id="expiresDate"></span>
-        </div>
-
-        <div class="msg" id="issueMsg"></div>
-        <button class="btn btn-green" onclick="issueKey()">🔑 키 생성 및 발급</button>
+    <!-- ══ 1장 ══ -->
+    <div class="section" id="ch1">
+      <div class="section-header">
+        <div class="section-num">1</div>
+        <div class="section-title">이 프로그램은 무엇인가요? <small>프로그램 소개</small></div>
       </div>
 
-      <!-- 발급 결과 -->
-      <div id="newKeyResult">
-        <div style="font-size:0.85em; color:var(--green); font-weight:700; margin-bottom:6px;">✅ 발급 완료!</div>
-        <div class="key-display" id="newKeyText"></div>
-        <button class="btn btn-blue" style="margin-top:8px;" onclick="copyKey()">📋 키 복사</button>
+      <p class="body-text">예배PPT 관리 시스템은 매주 예배에 필요한 PowerPoint 파일 3종을 자동으로 만들어 주는 프로그램입니다. 찬송가 번호, 교독문 번호, 성경 본문, 설교 제목 등을 입력하면 슬라이드가 자동으로 생성됩니다. 또한 예배 진행 중 성경·찬송가·교독문·찬양 PPT를 검색창 하나로 즉시 열 수 있어 부드러운 예배 진행이 가능합니다.</p>
+
+      <div class="ppt-cards">
+        <div class="ppt-card">
+          <div class="ppt-icon">📋</div>
+          <div class="ppt-title">예배순서 PPT</div>
+          <div class="ppt-file">worshippt.ppt</div>
+          <div class="ppt-desc">예배 순서·찬송·교독문 번호, 설교 제목 등이 담긴 메인 슬라이드. 항목을 클릭하면 해당 PPT로 즉시 이동합니다.</div>
+        </div>
+        <div class="ppt-card">
+          <div class="ppt-icon">📖</div>
+          <div class="ppt-title">성경 PPT</div>
+          <div class="ppt-file">성경.ppt</div>
+          <div class="ppt-desc">설교 제목과 성경 본문 슬라이드. 클릭하면 해당 장·절 성경 PPT로 바로 이동합니다.</div>
+        </div>
+        <div class="ppt-card">
+          <div class="ppt-icon">📢</div>
+          <div class="ppt-title">광고 PPT</div>
+          <div class="ppt-file">광고.ppt</div>
+          <div class="ppt-desc">광고 내용 슬라이드. 내용이 많으면 자동으로 여러 슬라이드로 분할됩니다.</div>
+        </div>
       </div>
 
-      <!-- 메일 발송 결과 -->
-      <div id="issueMailResult" class="mail-result"></div>
+      <div class="info-box green">
+        <span class="icon">💡</span>
+        <div><strong>핵심 흐름 (매주 4~5단계):</strong> 예배순서 선택 → 내용 입력(이전 값 자동 불러오기) → PPT 생성 → 예배 시작. 예배순서 양식은 최초 1회만 만들면 됩니다.</div>
+      </div>
     </div>
-  </div>
 
-</div><!-- /#mainScreen -->
-
-<script>
-// ── Firebase 초기화 ─────────────────────────────────────────
-const firebaseConfig = {
-  apiKey:            'AIzaSyDb_WSIXWewBWnBaZBxGZ1XtjM3REhYGtM',
-  authDomain:        'worshipppt-f897d.firebaseapp.com',
-  projectId:         'worshipppt-f897d',
-  storageBucket:     'worshipppt-f897d.firebasestorage.app',
-  messagingSenderId: '525813963254',
-  appId:             '1:525813963254:web:bf49d1ce6335c38f004fd7'
-};
-let db;
-try {
-  firebase.initializeApp(firebaseConfig);
-  db = firebase.firestore();
-} catch(e) { console.error('Firebase 초기화 실패:', e); }
-
-const ADMIN_PASSWORD = 'Jlozh990604$';
-let allLicenses   = [];
-let currentFilter = 'all';
-let licenseType   = 'permanent';
-
-// ── 로그인 / 로그아웃 ───────────────────────────────────────
-function login() {
-  const pw  = document.getElementById('pwInput').value.trim();
-  const msg = document.getElementById('loginMsg');
-  if (!db) { msg.textContent = '❌ Firebase 로딩 중입니다. 잠시 후 다시 시도해주세요.'; msg.className = 'msg error'; return; }
-  if (pw === ADMIN_PASSWORD) {
-    msg.textContent = '';
-    document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('mainScreen').style.display  = 'block';
-    document.getElementById('logoutBtn').style.display   = 'block';
-    loadLicenses();
-  } else {
-    msg.textContent = '❌ 비밀번호가 틀렸습니다.';
-    msg.className = 'msg error';
-    document.getElementById('pwInput').value = '';
-    document.getElementById('pwInput').focus();
-  }
-}
-function logout() {
-  if (!confirm('로그아웃하시겠습니까?')) return;
-  document.getElementById('loginScreen').style.display = 'flex';
-  document.getElementById('mainScreen').style.display  = 'none';
-  document.getElementById('logoutBtn').style.display   = 'none';
-  document.getElementById('pwInput').value = '';
-  document.getElementById('loginMsg').textContent = '';
-  allLicenses = [];
-}
-
-// ── 탭 전환 ────────────────────────────────────────────────
-function switchTab(n) {
-  document.getElementById('panel1').style.display = n === 1 ? 'block' : 'none';
-  document.getElementById('panel2').style.display = n === 2 ? 'block' : 'none';
-  document.getElementById('tab1').className = 'tab-btn' + (n === 1 ? ' active' : '');
-  document.getElementById('tab2').className = 'tab-btn' + (n === 2 ? ' active' : '');
-}
-
-// ── 필터 ───────────────────────────────────────────────────
-function setFilter(f) {
-  currentFilter = f;
-  const map = {
-    all:     { id:'filterAll',     cls:'on' },
-    active:  { id:'filterActive',  cls:'on' },
-    inactive:{ id:'filterInact',   cls:'on' },
-    perm:    { id:'filterPerm',    cls:'on' },
-    trial:   { id:'filterTrial',   cls:'on-orange' },
-    expired: { id:'filterExpired', cls:'on-red' }
-  };
-  ['filterAll','filterActive','filterInact','filterPerm','filterTrial','filterExpired']
-    .forEach(id => document.getElementById(id).className = 'filter-btn');
-  const t = map[f];
-  if (t) document.getElementById(t.id).className = 'filter-btn ' + t.cls;
-  renderList();
-}
-
-// ── 라이선스 종류 토글 ─────────────────────────────────────
-function setLicType(type) {
-  licenseType = type;
-  document.getElementById('btnPerm').className  = 'type-btn' + (type === 'permanent' ? ' active-perm'  : '');
-  document.getElementById('btnTrial').className = 'type-btn' + (type === 'trial'     ? ' active-trial' : '');
-  const preview = document.getElementById('expiresPreview');
-  const dateEl  = document.getElementById('expiresDate');
-  if (type === 'trial') {
-    const exp = new Date();
-    exp.setDate(exp.getDate() + 10);
-    dateEl.textContent = exp.toLocaleDateString('ko-KR', {year:'numeric', month:'long', day:'numeric'});
-    preview.classList.add('show');
-  } else {
-    preview.classList.remove('show');
-  }
-}
-
-// ── 전화번호 자동 포맷 ─────────────────────────────────────
-function formatPhone(el) {
-  let v = el.value.replace(/\D/g, '');
-  if      (v.length <= 3) el.value = v;
-  else if (v.length <= 7) el.value = v.slice(0,3) + '-' + v.slice(3);
-  else                    el.value = v.slice(0,3) + '-' + v.slice(3,7) + '-' + v.slice(7,11);
-}
-
-// ── 헬퍼 ───────────────────────────────────────────────────
-function isExpired(d)    { return d.expiresAt && new Date(d.expiresAt) < new Date(); }
-function isSoonExpire(d) {
-  if (!d.expiresAt) return false;
-  const diff = new Date(d.expiresAt) - new Date();
-  return diff > 0 && diff < 2 * 24 * 60 * 60 * 1000;
-}
-function licTypeOf(d) {
-  return d.licenseType || (d.expiresAt ? 'trial' : 'permanent');
-}
-
-// ── 랜덤 키 생성 ───────────────────────────────────────────
-function makeRandomKey() {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  const seg = () => Array.from({length:4}, () => chars[Math.floor(Math.random()*chars.length)]).join('');
-  return `${seg()}-${seg()}-${seg()}-${seg()}`;
-}
-
-// ── 라이선스 목록 불러오기 ──────────────────────────────────
-async function loadLicenses() {
-  document.getElementById('listMsg').textContent = '🔄 불러오는 중...';
-  document.getElementById('licenseList').innerHTML = '';
-  try {
-    const snap = await db.collection('licenses').orderBy('createdAt','desc').get()
-      .catch(() => db.collection('licenses').get());
-    allLicenses = [];
-    snap.forEach(doc => allLicenses.push({ id: doc.id, ...doc.data() }));
-    updateStats();
-    renderList();
-  } catch(e) {
-    document.getElementById('listMsg').textContent = '❌ 불러오기 실패: ' + e.message;
-  }
-}
-
-// ── 통계 업데이트 ──────────────────────────────────────────
-function updateStats() {
-  const total   = allLicenses.length;
-  const active  = allLicenses.filter(d => d.activated === true || d.activated === 'true').length;
-  const perm    = allLicenses.filter(d => licTypeOf(d) === 'permanent').length;
-  const trial   = allLicenses.filter(d => licTypeOf(d) === 'trial').length;
-  const expired = allLicenses.filter(d => isExpired(d)).length;
-  document.getElementById('statTotal').textContent    = total;
-  document.getElementById('statActive').textContent   = active;
-  document.getElementById('statInactive').textContent = total - active;
-  document.getElementById('statPerm').textContent     = perm;
-  document.getElementById('statTrial').textContent    = trial;
-  document.getElementById('statExpired').textContent  = expired;
-}
-
-// ── 목록 렌더링 ────────────────────────────────────────────
-function renderList() {
-  const q   = (document.getElementById('searchInput').value || '').toLowerCase();
-  let list  = [...allLicenses];
-  if (currentFilter === 'active')   list = list.filter(d => (d.activated === true || d.activated === 'true'));
-  if (currentFilter === 'inactive') list = list.filter(d => !(d.activated === true || d.activated === 'true'));
-  if (currentFilter === 'perm')     list = list.filter(d => licTypeOf(d) === 'permanent');
-  if (currentFilter === 'trial')    list = list.filter(d => licTypeOf(d) === 'trial');
-  if (currentFilter === 'expired')  list = list.filter(d => isExpired(d));
-  if (q) list = list.filter(d =>
-    d.id.toLowerCase().includes(q) ||
-    (d.email||'').toLowerCase().includes(q) ||
-    (d.buyerName||'').toLowerCase().includes(q) ||
-    (d.buyerPhone||'').replace(/-/g,'').includes(q.replace(/-/g,''))
-  );
-
-  const msg       = document.getElementById('listMsg');
-  const container = document.getElementById('licenseList');
-  msg.textContent = `${list.length}개 표시 / 전체 ${allLicenses.length}개`;
-  container.innerHTML = '';
-
-  if (list.length === 0) {
-    container.innerHTML = '<div class="loading">결과가 없습니다.</div>';
-    return;
-  }
-
-  list.forEach(d => {
-    const key          = d.id;
-    const isActive     = d.activated === true || d.activated === 'true';
-    const type         = licTypeOf(d);
-    const expired      = isExpired(d);
-    const soon         = isSoonExpire(d);
-    const activatedAt  = d.activatedAt ? d.activatedAt.substring(0,19).replace('T',' ') : '-';
-    const machineShort = d.machineId   ? d.machineId.substring(0,16) + '…' : '-';
-
-    let cardClass = 'lic-card';
-    if (expired)       cardClass += ' expired-card';
-    else if (isActive) cardClass += ' active-card';
-    cardClass += type === 'trial' ? ' trial-card' : '';
-
-    let typeBadge = '';
-    if (expired)             typeBadge = '<span class="badge badge-expired">❌ 만료됨</span>';
-    else if (type === 'trial') typeBadge = '<span class="badge badge-trial">⏳ 기한부</span>';
-    else                     typeBadge = '<span class="badge badge-perm">♾️ 영구</span>';
-
-    const actBadge = isActive
-      ? '<span class="badge badge-active">✅ 활성</span>'
-      : '<span class="badge badge-inactive">⬜ 미사용</span>';
-
-    let expireRow = '';
-    if (d.expiresAt) {
-      const expDate = new Date(d.expiresAt);
-      const expStr  = expDate.toLocaleDateString('ko-KR', {year:'numeric',month:'2-digit',day:'2-digit'});
-      if (expired)     expireRow = `<div class="lic-info">📅 만료일 <span class="expired-text">${expStr} (만료됨)</span></div>`;
-      else if (soon)   expireRow = `<div class="lic-info">📅 만료일 <span class="soon-text">${expStr} (곧 만료)</span></div>`;
-      else             expireRow = `<div class="lic-info">📅 만료일 <span>${expStr}</span></div>`;
-    }
-
-    const phoneRow = d.buyerPhone
-      ? `<div class="lic-info">📞 <span>${d.buyerPhone}</span></div>` : '';
-
-    const card = document.createElement('div');
-    card.className = cardClass;
-    card.dataset.key = key;
-    card.innerHTML = `
-      <div class="lic-card-header">
-        <div class="lic-key" onclick="copyText('${key}')" title="탭하여 복사">${key}</div>
-        <div class="badge-row">${typeBadge}${actBadge}</div>
+    <!-- ══ 2장 ══ -->
+    <div class="section" id="ch2">
+      <div class="section-header">
+        <div class="section-num">2</div>
+        <div class="section-title">설치 및 초기 설정 <small>최초 1회</small></div>
       </div>
-      <div class="lic-info">👤 <span>${d.buyerName || '-'}</span></div>
-      <div class="lic-info">📧 <span>${d.email || '-'}</span></div>
-      ${phoneRow}
-      ${expireRow}
-      ${isActive ? `
-        <div class="lic-info">🕐 <span>${activatedAt}</span></div>
-        <div class="lic-info">💻 <span title="${d.machineId||''}">${machineShort}</span></div>
-      ` : ''}
-      <hr class="divider">
-      <div class="lic-buyer">
-        <div class="lic-buyer-row">
-          <span class="lic-buyer-label">👤 이름</span>
-          <input type="text" value="${(d.buyerName||'').replace(/"/g,'&quot;')}" placeholder="구매자명" maxlength="30">
-        </div>
-        <div class="lic-buyer-row">
-          <span class="lic-buyer-label">📞 전화</span>
-          <input type="tel" value="${(d.buyerPhone||'').replace(/"/g,'&quot;')}" placeholder="010-xxxx-xxxx" maxlength="13" oninput="formatPhone(this)">
+
+      <div class="sub-section">
+        <div class="sub-title">설치 전 준비사항 확인</div>
+        <div class="req-grid">
+          <div class="req-card"><div class="req-icon">🖥️</div><div><div class="req-title">운영체제</div><div class="req-desc">Windows 10 또는 Windows 11 (64비트)</div></div></div>
+          <div class="req-card"><div class="req-icon">📊</div><div><div class="req-title">Microsoft PowerPoint</div><div class="req-desc">반드시 설치되어 있어야 합니다(2013 이상 권장, 2024에 최적화)</div></div></div>
+          <div class="req-card"><div class="req-icon">🌐</div><div><div class="req-title">Microsoft WebView2 Runtime</div><div class="req-desc">프로그램 UI 구동에 필요합니다. 설치 파일에 포함되어 있어 별도 설치 불필요</div></div></div>
+          <div class="req-card"><div class="req-icon">🔑</div><div><div class="req-title">인터넷 연결</div><div class="req-desc">최초 라이선스 인증 시 1회 필요. 이후 24시간마다 백그라운드 검증(오프라인 사용 가능)</div></div></div>
         </div>
       </div>
-      <div class="lic-actions">
-        ${d.email ? `<button class="btn-sm btn-sm-blue" data-action="mail">📧 메일</button>` : ''}
-        ${isActive ? `<button class="btn-sm btn-sm-orange" data-action="reset">🔓 인증해제</button>` : ''}
-        <button class="btn-sm btn-sm-green" data-action="save">💾 저장</button>
-        <button class="btn-sm btn-sm-red"  data-action="delete">🗑️ 삭제</button>
-        <button class="btn-sm btn-sm-gray" data-action="copy">📋 키복사</button>
+
+      <div class="sub-section">
+        <div class="sub-title">프로그램 설치</div>
+        <div class="steps">
+          <div class="step"><div class="step-num">1</div><div class="step-content"><div class="step-title">설치 파일 실행</div><div class="step-desc">제공받은 <code>WorshipPPT_Setup.msi</code> 파일을 더블클릭합니다. 저장매체나 컴퓨터의 같은 폴더에 zip파일이 있어야 합니다. Windows 보안 경고가 나타나면 [더 많은 정보] → [실행]을 클릭합니다.</div></div></div>
+          <div class="step"><div class="step-num">2</div><div class="step-content"><div class="step-title">설치 진행</div><div class="step-desc">[다음] 버튼을 클릭하여 설치를 진행합니다. 설치 경로는 기본값을 권장합니다. 찬송가·성경·교독문 데이터 파일도 함께 자동 설치됩니다.</div></div></div>
+          <div class="step"><div class="step-num">3</div><div class="step-content"><div class="step-title">설치 완료</div><div class="step-desc">[완료] 버튼을 클릭합니다. 바탕화면 또는 시작 메뉴에서 'WorshipPPT' 아이콘을 확인합니다.</div></div></div>
+        </div>
       </div>
-      <div class="mail-result" id="mailResult_${key.replace(/-/g,'')}"></div>`;
 
-    card.addEventListener('click', e => {
-      const action = e.target.dataset.action;
-      if (!action) return;
-      if (action === 'mail')   resendMail(key, d.email, d);
-      if (action === 'reset')  resetLic(key);
-      if (action === 'delete') deleteLic(key);
-      if (action === 'copy')   copyText(key);
-      if (action === 'save') {
-        const inputs   = card.querySelectorAll('.lic-buyer input');
-        const newName  = inputs[0].value.trim();
-        const newPhone = inputs[1].value.trim();
-        saveBuyerInfo(key, newName, newPhone);
-      }
-    });
-    container.appendChild(card);
-  });
-}
+      <div class="sub-section">
+        <div class="sub-title">데이터 폴더 구조</div>
+        <p class="body-text">설치 후 프로그램이 사용하는 데이터 폴더 구조는 다음과 같습니다. 경로는 설치 위치에 따라 다를 수 있으며, 레지스트리에 자동 저장됩니다.</p>
+        <div class="folder-tree">
+<span class="folder">worshipPPT\</span>  ← 설치 위치<br>
+├── <span class="folder">bible\</span>  <span class="comment">← 성경 PPT</span><br>
+│   ├── <span class="folder">OT\</span>  <span class="comment">← 구약 (Genesis, Exodus … Malachi)</span><br>
+│   └── <span class="folder">NT\</span>  <span class="comment">← 신약 (Matthew, Mark … Revelation)</span><br>
+├── <span class="folder">hymn\</span>   <span class="comment">← 찬송가 (23.ppt, 100.ppt …)</span><br>
+├── <span class="folder">versicle\</span> <span class="comment">← 교독문 (1.ppt, 2.ppt …)</span><br>
+├── <span class="folder">praise\</span>   <span class="comment">← 찬양 PPT (1_제목.ppt, 2_제목.ppt …)  →  이 폴더만 유일하게 유저가 사용가능 합니다.</span><br>
+├── <span class="folder">templates\</span> <span class="comment">← 예배순서 양식 (자동 저장)</span><br>
+├── <span class="file">worshipPPT.exe</span><br>
+└── <span class="file">worship_ppt.html</span>
+        </div>
+        <div class="info-box blue">
+          <span class="icon">📁</span>
+          <div><strong>찬양 PPT 추가:</strong>찬양 PPT를 직접 만들경우 가능한한 이 프로그램의 빈 슬라이드 만들기를 활용하여 기본 포맷이 들어간 슬라이드를 만든 뒤 이 슬라이드를 이용하여 만들기 바랍니다. 그리고 이렇게 만들어진 파일을<code>praise\</code> 폴더에 <code>1_제목.ppt</code>, <code>2_제목.ppt</code> 형식으로 저장하면 검색창에서 <code>/1</code>, <code>/2</code>로 바로 열 수 있습니다.</div>
+        </div>
+      </div>
 
-// ── 구매자 정보 저장 ───────────────────────────────────────
-async function saveBuyerInfo(key, name, phone) {
-  try {
-    await db.collection('licenses').doc(key).update({ buyerName: name, buyerPhone: phone });
-    const idx = allLicenses.findIndex(d => d.id === key);
-    if (idx >= 0) { allLicenses[idx].buyerName = name; allLicenses[idx].buyerPhone = phone; }
-    alert('✅ 저장되었습니다.');
-    renderList();
-  } catch(e) { alert('저장 실패: ' + e.message); }
-}
+      <div class="sub-section">
+        <div class="sub-title">라이선스 인증</div>
+        <p class="body-text">프로그램을 처음 실행하면 라이선스 인증 화면이 나타납니다. 인터넷이 연결된 상태에서 진행하세요.</p>
+        <div class="steps">
+          <div class="step"><div class="step-num">1</div><div class="step-content"><div class="step-title">라이선스 키 받기</div><div class="step-desc">프로그램 관리자에게 mail을 통하여 라이선스 키를 받습니다. 형식: <code>XXXX-XXXX-XXXX-XXXX</code></div></div></div>
+          <div class="step"><div class="step-num">2</div><div class="step-content"><div class="step-title">키 입력 및 인증</div><div class="step-desc">라이선스 입력란에 키를 입력한 뒤 [인증하기]를 클릭합니다. Firebase 서버를 통해 실시간으로 검증됩니다.</div></div></div>
+          <div class="step"><div class="step-num">3</div><div class="step-content"><div class="step-title">인증 완료</div><div class="step-desc">'인증 성공' 메시지가 나타나면 자동으로 메인 화면으로 이동합니다. 인증 정보는 레지스트리에 안전하게 저장됩니다.</div></div></div>
+        </div>
+        <div class="info-box orange">
+          <span class="icon">⚠️</span>
+          <div><strong>주의:</strong> 라이선스 키는 PC 1대에만 사용할 수 있습니다.</div>
+        </div>
+        <div class="info-box blue">
+          <span class="icon">🔒</span>
+          <div><strong>오프라인 사용:</strong> 인증 후에는 인터넷 없이도 사용할 수 있습니다. 프로그램이 24시간마다 백그라운드에서 자동 재검증하므로 별도로 신경 쓰지 않아도 됩니다.</div>
+        </div>
+      </div>
 
-// ── 메일 재발송 (EmailJS) ──────────────────────────────────
-async function resendMail(key, email, d) {
-  if (!confirm(`${email} 으로 라이선스 키를 발송할까요?\n\n키: ${key}`)) return;
-  const resultEl = document.getElementById('mailResult_' + key.replace(/-/g,''));
-  if (resultEl) { resultEl.textContent = '📧 발송 중...'; resultEl.style.display = 'block'; resultEl.style.color = '#1565C0'; }
-  try {
-    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
-      to_email:     email,
-      buyer_name:   d.buyerName || email,
-      license_key:  key,
-      license_type: licTypeOf(d) === 'permanent' ? '영구' : '기한부',
-      expires_at:   d.expiresAt ? new Date(d.expiresAt).toLocaleDateString('ko-KR') : '무제한',
-      guide_url:    WORSHIP_GUIDE_URL
-    });
-    if (resultEl) { resultEl.textContent = `✅ ${email} 발송 완료`; resultEl.style.color = '#2C5F2D'; }
-  } catch(err) {
-    const errMsg = err?.text || err?.message || JSON.stringify(err);
-    if (resultEl) { resultEl.textContent = `❌ 발송 실패: ${errMsg}`; resultEl.style.color = '#B71C1C'; }
-  }
-}
+      <div class="sub-section">
+        <div class="sub-title">PPT 템플릿 파일 준비</div>
+        <p class="body-text">PPT 생성 기능을 사용하려면 아래 3개 템플릿 파일이 Windows <strong>다운로드 폴더</strong>에 있어야 합니다. 설치 시 함께 제공됩니다.</p>
+        <table class="guide-table">
+          <thead><tr><th>파일명</th><th>용도</th></tr></thead>
+          <tbody>
+            <tr><td class="key">worshippt.ppt</td><td>예배순서 슬라이드 템플릿</td></tr>
+            <tr><td class="key">성경.ppt</td><td>성경 본문 슬라이드 템플릿</td></tr>
+            <tr><td class="key">광고.ppt</td><td>광고 슬라이드 템플릿</td></tr>
+          </tbody>
+        </table>
+        <div class="info-box blue">
+          <span class="icon">📁</span>
+          <div><strong>다운로드 폴더 위치:</strong> <code>C:\Users\사용자이름\Downloads</code></div>
+        </div>
+      </div>
+    </div>
 
-// ── 인증 해제 ───────────────────────────────────────────────
-async function resetLic(key) {
-  if (!confirm(`인증을 해제하시겠습니까?\n\n${key}\n\n해제 후 다른 PC에서 재인증 가능합니다.`)) return;
-  try {
-    await db.collection('licenses').doc(key).update({ activated:false, machineId:'', activatedAt:'' });
-    const idx = allLicenses.findIndex(d => d.id === key);
-    if (idx >= 0) { allLicenses[idx].activated = false; allLicenses[idx].machineId = ''; allLicenses[idx].activatedAt = ''; }
-    updateStats(); renderList();
-    alert('✅ 인증이 해제되었습니다.');
-  } catch(e) { alert('실패: ' + e.message); }
-}
+    <!-- ══ 3장 ══ -->
+    <div class="section" id="ch3">
+      <div class="section-header">
+        <div class="section-num">3</div>
+        <div class="section-title">매주 예배 준비 흐름 <small>5단계 요약</small></div>
+      </div>
+      <p class="body-text">매주 아래 순서로 진행합니다. 처음 사용 시에는 4장(예배순서 만들기)을 먼저 진행하세요. 예배순서를 한 번 만들어 두면 이후에는 STEP 01부터 시작합니다.</p>
+      <div class="flow-grid">
+        <div class="flow-card"><div class="flow-num">STEP 01</div><div class="flow-title">프로그램<br>실행</div><div class="flow-desc">바탕화면 아이콘<br>더블클릭</div></div>
+        <div class="flow-card"><div class="flow-num">STEP 02</div><div class="flow-title">예배순서<br>선택</div><div class="flow-desc">저장된 양식<br>버튼 클릭</div></div>
+        <div class="flow-card"><div class="flow-num">STEP 03</div><div class="flow-title">내용<br>입력</div><div class="flow-desc">찬송·교독문·<br>성경·설교 입력</div></div>
+        <div class="flow-card"><div class="flow-num">STEP 04</div><div class="flow-title">PPT<br>생성</div><div class="flow-desc">[PPT 생성]<br>버튼 클릭</div></div>
+        <div class="flow-card"><div class="flow-num">STEP 05</div><div class="flow-title">예배<br>시작</div><div class="flow-desc">[예배 시작]<br>버튼 클릭</div></div>
+      </div>
+      <div class="info-box green">
+        <span class="icon">💡</span>
+        <div><strong>시간 절약 팁:</strong> 이전 주 입력값이 자동으로 불러와지므로 변경된 항목(찬송가 번호, 성경 본문, 설교 제목 등)만 수정하면 됩니다. 실제 소요 시간은 5분 내외입니다.</div>
+      </div>
+    </div>
 
-// ── 삭제 ────────────────────────────────────────────────────
-async function deleteLic(key) {
-  if (!confirm(`삭제하시겠습니까?\n\n${key}\n\n삭제 후 복구할 수 없습니다.`)) return;
-  try {
-    await db.collection('licenses').doc(key).delete();
-    allLicenses = allLicenses.filter(d => d.id !== key);
-    updateStats(); renderList();
-    alert('✅ 삭제되었습니다.');
-  } catch(e) { alert('실패: ' + e.message); }
-}
+    <!-- ══ 4장 ══ -->
+    <div class="section" id="ch4">
+      <div class="section-header">
+        <div class="section-num">4</div>
+        <div class="section-title">예배순서 만들기 <small>최초 1회 — 이후 재사용</small></div>
+      </div>
+      <p class="body-text">'예배순서'는 매주 반복되는 순서의 틀입니다. 한 번 만들어두면 매주 재사용하므로 처음에만 진행합니다. 주일예배·수요예배 등 여러 양식을 따로 만들어 둘 수 있습니다.</p>
 
-// ── 키 발급 ─────────────────────────────────────────────────
-async function issueKey() {
-  const name  = document.getElementById('newName').value.trim();
-  const email = document.getElementById('newEmail').value.trim();
-  const phone = document.getElementById('newPhone').value.trim();
-  const msg   = document.getElementById('issueMsg');
-  const mailResultEl = document.getElementById('issueMailResult');
+      <div class="sub-section">
+        <div class="sub-title">예배순서 만들기 단계</div>
+        <div class="steps">
+          <div class="step"><div class="step-num">1</div><div class="step-content"><div class="step-title">예배순서 만들기 탭 클릭</div><div class="step-desc">프로그램 상단 탭에서 [예배순서 만들기]를 클릭합니다. 왼쪽에 선택 가능한 항목 목록이 나타납니다.</div></div></div>
+          <div class="step"><div class="step-num">2</div><div class="step-content"><div class="step-title">항목 추가</div><div class="step-desc">왼쪽 목록에서 항목을 클릭하면 오른쪽 '선택된 순서'에 추가됩니다. 찬송가가 여러 개면 여러 번 클릭합니다.</div></div></div>
+          <div class="step"><div class="step-num">3</div><div class="step-content"><div class="step-title">순서 조정</div><div class="step-desc">▲ / ▼ 버튼으로 순서를 변경하고, [삭제] 버튼으로 잘못 추가한 항목을 제거합니다.</div></div></div>
+          <div class="step"><div class="step-num">4</div><div class="step-content"><div class="step-title">이름 입력 후 저장</div><div class="step-desc">하단 이름 입력란에 예배 이름(예: 주일예배)을 입력하고 [저장]을 클릭합니다.</div></div></div>
+        </div>
+      </div>
 
-  if (!email || !/^[^@]+@[^@]+\.[^@]+$/.test(email)) {
-    msg.textContent = '❌ 올바른 이메일을 입력해주세요.';
-    msg.className = 'msg error'; return;
-  }
-  msg.textContent = '⏳ 발급 중...'; msg.className = 'msg info';
-  mailResultEl.style.display = 'none';
+      <div class="sub-section">
+        <div class="sub-title">선택 가능한 항목 설명</div>
+        <table class="guide-table">
+          <thead><tr><th>항목</th><th>설명</th></tr></thead>
+          <tbody>
+            <tr><td class="key">기원 / 주기도문 / 신앙고백 / 찬양대 / 봉헌기도 / 축도</td><td>고정 항목 — 내용 입력 없이 순서에만 표시됩니다</td></tr>
+            <tr><td class="key">찬송가</td><td>번호를 입력하면 해당 찬송가 PPT와 자동으로 연결됩니다 (여러 번 추가 가능)</td></tr>
+            <tr><td class="key">교독문</td><td>번호를 입력하면 해당 교독문 PPT와 자동으로 연결됩니다</td></tr>
+            <tr><td class="key">기도</td><td>기도자의 이름과 직분을 입력합니다</td></tr>
+            <tr><td class="key">특송</td><td>특송하시는 분의 이름과 직분, 또는 단체이름을 입력합니다</td></tr>
+            <tr><td class="key">성경</td><td>본문 정보를 입력하면 성경 PPT 해당 절로 바로 이동하며 성경.ppt 생성의 기초가 됩니다(최대 4개 입력 가능)</td></tr>
+            <tr><td class="key">설교</td><td>설교 제목 입력란이 생성되고 설교의 제목을 입력하면 성경.ppt 생성의 기초가 됩니다</td></tr>
+            <tr><td class="key">광고</td><td>여러 줄의 광고 내용을 입력할 수 있으며, 광고.ppt 생성의 기초가 됩니다. 내용이 많으면 슬라이드가 자동 분할됩니다</td></tr>
+          </tbody>
+        </table>
+      </div>
 
-  const key       = makeRandomKey();
-  const expiresAt = licenseType === 'trial'
-    ? (() => { const d = new Date(); d.setDate(d.getDate() + 10); return d.toISOString(); })()
-    : null;
+      <div class="info-box green">
+        <span class="icon">💡</span>
+        <div><strong>팁:</strong> 주일예배·수요예배·새벽예배 등 순서가 다른 경우 각각 만들어두면 매주 선택해서 사용할 수 있습니다. 기존 예배순서를 삭제하려면 입력 탭에서 해당 순서 선택 후 [현재 순서 삭제]를 클릭하세요.</div>
+      </div>
+    </div>
 
-  const docData = {
-    activated: false, machineId: '', activatedAt: '',
-    email, buyerName: name, buyerPhone: phone,
-    licenseType, createdAt: new Date().toISOString(),
-    ...(expiresAt ? { expiresAt } : {})
-  };
+    <!-- ══ 5장 ══ -->
+    <div class="section" id="ch5">
+      <div class="section-header">
+        <div class="section-num">5</div>
+        <div class="section-title">배경 이미지 설정 <small>선택 사항 — 한 번 설정하면 매주 자동 적용</small></div>
+      </div>
+      <p class="body-text">예배순서·성경·광고 PPT에 배경 이미지를 각각 따로 지정할 수 있습니다. 배경을 설정하면 슬라이드 텍스트 색상이 배경 밝기에 따라 자동으로 흰색 또는 검정으로 조정됩니다.</p>
 
-  try {
-    await db.collection('licenses').doc(key).set(docData);
+      <div class="sub-section">
+        <div class="sub-title">배경 이미지 설정 방법</div>
+        <div class="steps">
+          <div class="step"><div class="step-num">1</div><div class="step-content"><div class="step-title">예배순서 입력 탭 이동</div><div class="step-desc">상단 탭에서 [예배순서 입력]을 클릭하고 사용할 예배순서를 선택합니다.</div></div></div>
+          <div class="step"><div class="step-num">2</div><div class="step-content"><div class="step-title">배경 이미지 영역 확인</div><div class="step-desc">입력 폼 상단에 <strong>배경 이미지</strong> 영역이 표시됩니다. 예배순서용·성경용·광고용 세 종류를 각각 따로 설정할 수 있습니다.</div></div></div>
+          <div class="step"><div class="step-num">3</div><div class="step-content"><div class="step-title">이미지 파일 선택</div><div class="step-desc">[이미지 선택] 버튼을 클릭한 뒤 JPG 또는 PNG 파일을 선택합니다. 개별 교회에사 사용하는 이미지가 있다면 백그라운드로 사용 가능합니다. 미리보기가 나타나면 정상 적용된 것입니다.</div></div></div>
+          <div class="step"><div class="step-num">4</div><div class="step-content"><div class="step-title">PPT 생성 시 자동 반영</div><div class="step-desc">[PPT 생성]을 클릭하면 선택한 배경 이미지가 슬라이드에 자동 적용됩니다. 배경을 없애려면 [삭제] 버튼을 누르면 흰색 배경으로 생성됩니다.</div></div></div>
+        </div>
+      </div>
 
-    document.getElementById('newKeyText').textContent = key;
-    document.getElementById('newKeyResult').style.display = 'block';
-    document.getElementById('newName').value  = '';
-    document.getElementById('newEmail').value = '';
-    document.getElementById('newPhone').value = '';
+      <div class="sub-section">
+        <div class="sub-title">배경 종류 안내</div>
+        <table class="guide-table">
+          <thead><tr><th>배경 종류</th><th>적용 대상</th><th>글자색 자동 설정</th></tr></thead>
+          <tbody>
+            <tr><td class="key">예배순서 배경</td><td>예배 순서 슬라이드</td><td>배경 밝기에 따라 자동(검정, 흰색, 녹색, 황색)</td></tr>
+            <tr><td class="key">성경 배경</td><td>성경 본문 슬라이드</td><td>배경 밝기에 따라 자동 (밝으면 검정 / 어두우면 흰색)</td></tr>
+            <tr><td class="key">광고 배경</td><td>광고 슬라이드</td><td>배경 밝기에 따라 자동 (밝으면 검정 / 어두우면 흰색)</td></tr>
+          </tbody>
+        </table>
+      </div>
 
-    const expStr = expiresAt
-      ? `만료일: ${new Date(expiresAt).toLocaleDateString('ko-KR')}`
-      : '영구 라이선스';
-    msg.textContent = `✅ 발급 완료! (${expStr})`;
-    msg.className = 'msg ok';
+      <div class="info-box green">
+        <span class="icon">🎨</span>
+        <div><strong>자동 글자색:</strong> 배경이 어두우면 글자가 자동으로 <strong>흰색</strong>으로, 밝으면 <strong>검은색</strong>으로 설정됩니다. 별도로 조정하지 않아도 됩니다.</div>
+      </div>
+      <div class="info-box blue" style="margin-top:8px">
+        <span class="icon">💾</span>
+        <div><strong>한 번 설정하면 기억됩니다:</strong> 배경 이미지는 저장되어 다음에도 동일하게 적용됩니다. 매주 다시 설정할 필요가 없습니다.</div>
+      </div>
+      <div class="info-box orange" style="margin-top:8px">
+        <span class="icon">🖼️</span>
+        <div><strong>권장 이미지:</strong> 단순하고 텍스트가 없는 이미지를 권장합니다. 너무 복잡한 이미지는 글자를 읽기 어렵게 만들 수 있습니다.</div>
+      </div>
+    </div>
 
-    allLicenses.unshift({ id: key, ...docData });
-    updateStats();
+    <!-- ══ 6장 ══ -->
+    <div class="section" id="ch6">
+      <div class="section-header">
+        <div class="section-num">6</div>
+        <div class="section-title">매주 예배 내용 입력하기 <small>매주 반복</small></div>
+      </div>
+      <p class="body-text">이전에 입력한 값이 자동으로 불러와지므로 변경된 항목만 수정하면 됩니다.</p>
 
-    // EmailJS 메일 발송
-    if (email) {
-      mailResultEl.textContent = '📧 메일 발송 중...';
-      mailResultEl.style.display = 'block';
-      mailResultEl.style.color = '#1565C0';
-      try {
-        await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
-          to_email:     email,
-          buyer_name:   name || email,
-          license_key:  key,
-          license_type: licenseType === 'permanent' ? '영구' : '기한부',
-          expires_at:   expiresAt ? new Date(expiresAt).toLocaleDateString('ko-KR') : '무제한',
-          guide_url:    WORSHIP_GUIDE_URL
-        });
-        mailResultEl.textContent = `✅ ${email} 으로 메일 발송 완료`;
-        mailResultEl.style.color = '#2C5F2D';
-      } catch(err) {
-        const errMsg = err?.text || err?.message || JSON.stringify(err);
-        mailResultEl.textContent = `⚠️ 키 발급 완료. 메일 발송 실패: ${errMsg}`;
-        mailResultEl.style.color = '#E65100';
-      }
-    }
+      <div class="sub-section">
+        <div class="sub-title">예배순서 선택 및 입력</div>
+        <div class="steps">
+          <div class="step"><div class="step-num">1</div><div class="step-content"><div class="step-title">예배순서 입력 탭 클릭</div><div class="step-desc">상단 탭에서 [예배순서 입력]을 클릭합니다.</div></div></div>
+          <div class="step"><div class="step-num">2</div><div class="step-content"><div class="step-title">예배순서 선택</div><div class="step-desc">상단에 표시된 예배순서 버튼(예: 주일예배)을 클릭합니다. 입력 폼이 아래에 나타납니다.</div></div></div>
+          <div class="step"><div class="step-num">3</div><div class="step-content"><div class="step-title">내용 입력</div><div class="step-desc">각 항목에 맞게 값을 입력합니다. 변경되지 않은 항목은 그대로 두어도 됩니다.</div></div></div>
+          <div class="step"><div class="step-num">4</div><div class="step-content"><div class="step-title">자동 저장</div><div class="step-desc">별도의 저장 없이도 현재 입력값이 저장되어 다음에 열 때 자동으로 불러옵니다.</div></div></div>
+        </div>
+      </div>
 
-  } catch(e) {
-    msg.textContent = '❌ 발급 실패: ' + e.message;
-    msg.className = 'msg error';
-  }
-}
+      <div class="sub-section">
+        <div class="sub-title">항목별 입력 방법</div>
+        <div class="input-cards">
+          <div class="input-card">
+            <div class="input-card-header"><div class="input-card-name">찬송가</div><span class="input-card-badge badge-num">숫자</span></div>
+            <div class="input-card-desc">찬송가 번호만 입력합니다.</div>
+            <div class="input-card-example">예) 23</div>
+          </div>
+          <div class="input-card">
+            <div class="input-card-header"><div class="input-card-name">교독문</div><span class="input-card-badge badge-num">숫자</span></div>
+            <div class="input-card-desc">교독문 번호만 입력합니다.</div>
+            <div class="input-card-example">예) 14</div>
+          </div>
+          <div class="input-card">
+            <div class="input-card-header"><div class="input-card-name">기도</div><span class="input-card-badge badge-num">텍스트</span></div>
+            <div class="input-card-desc">기도자의 이름과 직분을 입력합니다.</div>
+            <div class="input-card-example">예) 홍길동 장로</div>
+          </div>
+          <div class="input-card">
+            <div class="input-card-header"><div class="input-card-name">특송</div><span class="input-card-badge badge-num">텍스트</span></div>
+            <div class="input-card-desc">특송하시는 분의 이름과 직분, 단체이름을 입력합니다.</div>
+            <div class="input-card-example">예) 홍길동 장로, 혹은 시온 합주단등</div>
+          </div>
+          <div class="input-card">
+            <div class="input-card-header"><div class="input-card-name">성경</div><span class="input-card-badge badge-text">약자+장:절</span></div>
+            <div class="input-card-desc">책 약자 + 장:시작절~끝절 형식. ","로 구분하여 최대 4개까지 입력 가능합니다.</div>
+            <div class="input-card-example">예) 요 3:16~17 / 롬 8:1,창 1:1~3</div>
+          </div>
+          <div class="input-card">
+            <div class="input-card-header"><div class="input-card-name">설교</div><span class="input-card-badge badge-text">텍스트</span></div>
+            <div class="input-card-desc">설교 제목 전체를 입력합니다.</div>
+            <div class="input-card-example">예) 하나님의 사랑</div>
+          </div>
+          <div class="input-card">
+            <div class="input-card-header"><div class="input-card-name">광고</div><span class="input-card-badge badge-multi">여러 줄</span></div>
+            <div class="input-card-desc">Enter로 구분하여 여러 줄 입력 가능. 내용이 많으면 슬라이드가 자동 분할됩니다.</div>
+            <div class="input-card-example">1. 헌신예배 3월 15일<br>2. 청년부 모임 안내</div>
+          </div>
+          <div class="input-card">
+            <div class="input-card-header"><div class="input-card-name">고정 항목</div><span class="input-card-badge badge-fixed">입력 없음</span></div>
+            <div class="input-card-desc">기원·주기도문·신앙고백·찬양대·봉헌기도·축도는 입력 불필요합니다.</div>
+            <div class="input-card-example">(자동 처리)</div>
+          </div>
+        </div>
+      </div>
 
-// ── 복사 ────────────────────────────────────────────────────
-function copyText(text) {
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(text).then(() => alert('📋 복사됨: ' + text));
-  } else {
-    const el = document.createElement('textarea');
-    el.value = text; document.body.appendChild(el);
-    el.select(); document.execCommand('copy');
-    el.remove(); alert('📋 복사됨: ' + text);
-  }
-}
-function copyKey() {
-  copyText(document.getElementById('newKeyText').textContent);
-}
-</script>
-</body>
-</html>
+      <div class="sub-section">
+        <div class="sub-title">성경 약자 참고표</div>
+
+        <span class="bible-section-label ot">📜 구약 (39권)</span>
+        <div class="bible-grid">
+          <div class="bible-item ot"><span class="bible-abbr">창</span><span class="bible-name">창세기</span></div>
+          <div class="bible-item ot"><span class="bible-abbr">출</span><span class="bible-name">출애굽기</span></div>
+          <div class="bible-item ot"><span class="bible-abbr">레</span><span class="bible-name">레위기</span></div>
+          <div class="bible-item ot"><span class="bible-abbr">민</span><span class="bible-name">민수기</span></div>
+          <div class="bible-item ot"><span class="bible-abbr">신</span><span class="bible-name">신명기</span></div>
+          <div class="bible-item ot"><span class="bible-abbr">수</span><span class="bible-name">여호수아</span></div>
+          <div class="bible-item ot"><span class="bible-abbr">삿</span><span class="bible-name">사사기</span></div>
+          <div class="bible-item ot"><span class="bible-abbr">룻</span><span class="bible-name">룻기</span></div>
+          <div class="bible-item ot"><span class="bible-abbr">삼상</span><span class="bible-name">사무엘상</span></div>
+          <div class="bible-item ot"><span class="bible-abbr">삼하</span><span class="bible-name">사무엘하</span></div>
+          <div class="bible-item ot"><span class="bible-abbr">왕상</span><span class="bible-name">열왕기상</span></div>
+          <div class="bible-item ot"><span class="bible-abbr">왕하</span><span class="bible-name">열왕기하</span></div>
+          <div class="bible-item ot"><span class="bible-abbr">대상</span><span class="bible-name">역대상</span></div>
+          <div class="bible-item ot"><span class="bible-abbr">대하</span><span class="bible-name">역대하</span></div>
+          <div class="bible-item ot"><span class="bible-abbr">스</span><span class="bible-name">에스라</span></div>
+          <div class="bible-item ot"><span class="bible-abbr">느</span><span class="bible-name">느헤미야</span></div>
+          <div class="bible-item ot"><span class="bible-abbr">에</span><span class="bible-name">에스더</span></div>
+          <div class="bible-item ot"><span class="bible-abbr">욥</span><span class="bible-name">욥기</span></div>
+          <div class="bible-item ot"><span class="bible-abbr">시</span><span class="bible-name">시편</span></div>
+          <div class="bible-item ot"><span class="bible-abbr">잠</span><span class="bible-name">잠언</span></div>
+          <div class="bible-item ot"><span class="bible-abbr">전</span><span class="bible-name">전도서</span></div>
+          <div class="bible-item ot"><span class="bible-abbr">아</span><span class="bible-name">아가</span></div>
+          <div class="bible-item ot"><span class="bible-abbr">사</span><span class="bible-name">이사야</span></div>
+          <div class="bible-item ot"><span class="bible-abbr">렘</span><span class="bible-name">예레미야</span></div>
+          <div class="bible-item ot"><span class="bible-abbr">애</span><span class="bible-name">예레미야애가</span></div>
+          <div class="bible-item ot"><span class="bible-abbr">겔</span><span class="bible-name">에스겔</span></div>
+          <div class="bible-item ot"><span class="bible-abbr">단</span><span class="bible-name">다니엘</span></div>
+          <div class="bible-item ot"><span class="bible-abbr">호</span><span class="bible-name">호세아</span></div>
+          <div class="bible-item ot"><span class="bible-abbr">욜</span><span class="bible-name">요엘</span></div>
+          <div class="bible-item ot"><span class="bible-abbr">암</span><span class="bible-name">아모스</span></div>
+          <div class="bible-item ot"><span class="bible-abbr">옵</span><span class="bible-name">오바댜</span></div>
+          <div class="bible-item ot"><span class="bible-abbr">욘</span><span class="bible-name">요나</span></div>
+          <div class="bible-item ot"><span class="bible-abbr">미</span><span class="bible-name">미가</span></div>
+          <div class="bible-item ot"><span class="bible-abbr">나</span><span class="bible-name">나훔</span></div>
+          <div class="bible-item ot"><span class="bible-abbr">합</span><span class="bible-name">하박국</span></div>
+          <div class="bible-item ot"><span class="bible-abbr">습</span><span class="bible-name">스바냐</span></div>
+          <div class="bible-item ot"><span class="bible-abbr">학</span><span class="bible-name">학개</span></div>
+          <div class="bible-item ot"><span class="bible-abbr">슥</span><span class="bible-name">스가랴</span></div>
+          <div class="bible-item ot"><span class="bible-abbr">말</span><span class="bible-name">말라기</span></div>
+        </div>
+
+        <span class="bible-section-label nt">✝ 신약 (27권)</span>
+        <div class="bible-grid">
+          <div class="bible-item nt"><span class="bible-abbr">마</span><span class="bible-name">마태복음</span></div>
+          <div class="bible-item nt"><span class="bible-abbr">막</span><span class="bible-name">마가복음</span></div>
+          <div class="bible-item nt"><span class="bible-abbr">눅</span><span class="bible-name">누가복음</span></div>
+          <div class="bible-item nt"><span class="bible-abbr">요</span><span class="bible-name">요한복음</span></div>
+          <div class="bible-item nt"><span class="bible-abbr">행</span><span class="bible-name">사도행전</span></div>
+          <div class="bible-item nt"><span class="bible-abbr">롬</span><span class="bible-name">로마서</span></div>
+          <div class="bible-item nt"><span class="bible-abbr">고전</span><span class="bible-name">고린도전서</span></div>
+          <div class="bible-item nt"><span class="bible-abbr">고후</span><span class="bible-name">고린도후서</span></div>
+          <div class="bible-item nt"><span class="bible-abbr">갈</span><span class="bible-name">갈라디아서</span></div>
+          <div class="bible-item nt"><span class="bible-abbr">엡</span><span class="bible-name">에베소서</span></div>
+          <div class="bible-item nt"><span class="bible-abbr">빌</span><span class="bible-name">빌립보서</span></div>
+          <div class="bible-item nt"><span class="bible-abbr">골</span><span class="bible-name">골로새서</span></div>
+          <div class="bible-item nt"><span class="bible-abbr">살전</span><span class="bible-name">데살로니가전서</span></div>
+          <div class="bible-item nt"><span class="bible-abbr">살후</span><span class="bible-name">데살로니가후서</span></div>
+          <div class="bible-item nt"><span class="bible-abbr">딤전</span><span class="bible-name">디모데전서</span></div>
+          <div class="bible-item nt"><span class="bible-abbr">딤후</span><span class="bible-name">디모데후서</span></div>
+          <div class="bible-item nt"><span class="bible-abbr">딛</span><span class="bible-name">디도서</span></div>
+          <div class="bible-item nt"><span class="bible-abbr">몬</span><span class="bible-name">빌레몬서</span></div>
+          <div class="bible-item nt"><span class="bible-abbr">히</span><span class="bible-name">히브리서</span></div>
+          <div class="bible-item nt"><span class="bible-abbr">약</span><span class="bible-name">야고보서</span></div>
+          <div class="bible-item nt"><span class="bible-abbr">벧전</span><span class="bible-name">베드로전서</span></div>
+          <div class="bible-item nt"><span class="bible-abbr">벧후</span><span class="bible-name">베드로후서</span></div>
+          <div class="bible-item nt"><span class="bible-abbr">요일</span><span class="bible-name">요한일서</span></div>
+          <div class="bible-item nt"><span class="bible-abbr">요이</span><span class="bible-name">요한이서</span></div>
+          <div class="bible-item nt"><span class="bible-abbr">요삼</span><span class="bible-name">요한삼서</span></div>
+          <div class="bible-item nt"><span class="bible-abbr">유</span><span class="bible-name">유다서</span></div>
+          <div class="bible-item nt"><span class="bible-abbr">계</span><span class="bible-name">요한계시록</span></div>
+        </div>
+        <div class="info-box blue">
+          <span class="icon">📖</span>
+          <div><strong>입력 형식:</strong> 책약자 + 장:시작절~끝절 &nbsp;|&nbsp; 예) <code>요 3:16~17</code> &nbsp;|&nbsp; 장만 입력: <code>창 1</code> &nbsp;|&nbsp; 복수 본문: <code>요 3:16,롬 8:1</code></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ 7장 ══ -->
+    <div class="section" id="ch7">
+      <div class="section-header">
+        <div class="section-num">7</div>
+        <div class="section-title">PPT 생성 및 저장 <small>자동 생성</small></div>
+      </div>
+      <div class="steps">
+        <div class="step"><div class="step-num">1</div><div class="step-content"><div class="step-title">입력값 최종 확인</div><div class="step-desc">찬송가 번호, 성경 본문, 설교 제목, 광고 내용이 올바른지 한 번 더 확인합니다.</div></div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-content"><div class="step-title">PPT 생성 버튼 클릭</div><div class="step-desc">화면 하단의 [PPT 생성] 버튼을 클릭합니다. PowerPoint가 백그라운드에서 자동으로 실행되어 파일을 처리합니다.</div></div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-content"><div class="step-title">완료 대기</div><div class="step-desc">잠시 기다리면 3개 파일(worshippt.ppt, 성경.ppt, 광고.ppt)이 자동으로 생성·저장됩니다. 기존 파일이 있으면 자동으로 덮어씁니다.</div></div></div>
+        <div class="step"><div class="step-num">4</div><div class="step-content"><div class="step-title">완료 확인</div><div class="step-desc">'PPT 파일이 저장되었습니다' 메시지가 나타나면 완료입니다.</div></div></div>
+      </div>
+      <div class="info-box green" style="margin-top:14px">
+        <span class="icon">📁</span>
+        <div><strong>저장 위치:</strong> 다운로드 폴더 (<code>C:\Users\사용자이름\Downloads</code>)</div>
+      </div>
+      <div class="info-box orange" style="margin-top:8px">
+        <span class="icon">⚠️</span>
+        <div><strong>주의:</strong> PPT 생성 전 반드시 입력값을 확인하세요. 생성하면 기존 파일에 덮어써집니다. 또한 생성 중에는 PowerPoint 창을 닫거나 컴퓨터를 끄지 마세요.</div>
+      </div>
+    </div>
+
+    <!-- ══ 8장 ══ -->
+    <div class="section" id="ch8">
+      <div class="section-header">
+        <div class="section-num">8</div>
+        <div class="section-title">예배 시작하기 <small>슬라이드쇼 실행</small></div>
+      </div>
+      <div class="steps">
+        <div class="step"><div class="step-num">1</div><div class="step-content"><div class="step-title">예배 시작 버튼 클릭</div><div class="step-desc">입력 탭 하단의 [예배 시작] 버튼을 클릭합니다. 프로그램 창이 자동으로 최소화됩니다.</div></div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-content"><div class="step-title">슬라이드쇼 자동 실행</div><div class="step-desc">worshippt.ppt 파일이 전체화면 슬라이드쇼로 자동 실행됩니다.</div></div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-content"><div class="step-title">항목 클릭으로 이동</div><div class="step-desc">슬라이드에서 찬송가·교독문·성경 항목을 클릭하면 해당 PPT로 이동합니다. 슬라이드 좌측 상단의 로고를 클릭하면 검색창이 열립니다.</div></div></div>
+        <div class="step"><div class="step-num">4</div><div class="step-content"><div class="step-title">Esc 키로 복귀</div><div class="step-desc">슬라이드쇼 도중 Esc 키를 누르면 예배PPT 관리 시스템으로 돌아옵니다.</div></div></div>
+      </div>
+      <div style="margin-top:18px">
+        <table class="guide-table">
+          <thead><tr><th>클릭 대상</th><th>결과</th></tr></thead>
+          <tbody>
+            <tr><td class="key">찬송가 번호</td><td>해당 번호 찬송가 PPT 전체화면 실행</td></tr>
+            <tr><td class="key">교독문 번호</td><td>해당 번호 교독문 PPT 전체화면 실행</td></tr>
+            <tr><td class="key">성경 본문</td><td>해당 장·절 성경 PPT 전체화면 실행</td></tr>
+            <tr><td class="key">설교 제목</td><td>성경.ppt 전체화면 실행</td></tr>
+            <tr><td class="key">좌측 상단 로고</td><td>검색창 열기 (모든 슬라이드에서 사용 가능)</td></tr>
+            <tr><td class="key">Esc 키</td><td>예배PPT 관리 시스템으로 돌아옴</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══ 9장 ══ -->
+    <div class="section" id="ch9">
+      <div class="section-header">
+        <div class="section-num">9</div>
+        <div class="section-title">검색 기능 사용하기 <small>빠른 PPT 열기</small></div>
+      </div>
+      <p class="body-text">예배 진행 중 찬송가·교독문·찬양·성경 PPT를 빠르게 열 수 있는 검색 창입니다. 예배 화면 위에 항상 최상위로 표시되며, 입력 후 <strong>Enter</strong> 또는 [검색] 버튼을 누르면 즉시 해당 PPT가 슬라이드쇼로 실행됩니다.</p>
+
+      <div class="sub-section">
+        <div class="sub-title">검색 창 열기</div>
+        <div class="steps">
+          <div class="step"><div class="step-num">1</div><div class="step-content"><div class="step-title">로고 클릭 (모든 슬라이드)</div><div class="step-desc">모든 슬라이드의 <strong>좌측 상단 로고</strong>를 클릭하면 검색 창이 열립니다. 예배 중 어느 슬라이드에서든 검색창에 바로 접근할 수 있습니다.</div></div></div>
+          <div class="step"><div class="step-num">2</div><div class="step-content"><div class="step-title">한글 입력 모드 자동 전환</div><div class="step-desc">검색 창이 열리면 자동으로 한글 IME로 전환됩니다. 창 우측의 <strong>[한글 / 영어]</strong> 버튼으로 언제든지 수동 전환할 수 있습니다.</div></div></div>
+          <div class="step"><div class="step-num">3</div><div class="step-content"><div class="step-title">검색어 입력 후 실행</div><div class="step-desc">아래 형식에 맞게 입력 후 <strong>Enter</strong> 또는 [검색] 버튼을 누릅니다.</div></div></div>
+        </div>
+      </div>
+
+      <div class="sub-section">
+        <div class="sub-title">입력 형식 안내</div>
+        <table class="guide-table">
+          <thead><tr><th>유형</th><th>입력 형식</th><th>예시</th><th>설명</th></tr></thead>
+          <tbody>
+            <tr><td class="key">찬송가</td><td><code>숫자</code> 또는 <code>찬숫자</code></td><td><code>23</code> &nbsp;/&nbsp; <code>찬23</code></td><td>해당 번호의 찬송가 PPT를 열고 슬라이드쇼 실행</td></tr>
+            <tr><td class="key">교독문</td><td><code>//숫자</code></td><td><code>//5</code></td><td>해당 번호의 교독문 PPT를 열고 슬라이드쇼 실행</td></tr>
+            <tr><td class="key">찬양</td><td><code>/숫자</code></td><td><code>/3</code></td><td>praise\ 폴더의 해당 번호 찬양 PPT 슬라이드쇼 실행. "/0"은 기본 탑재된 찬양 리스트를 정리해 놓은 찬양 목록</td></tr>
+            <tr><td class="key">성경 (장만)</td><td><code>약자+장</code></td><td><code>요3</code></td><td>해당 성경책 해당 장의 PPT를 열고 1절 슬라이드쇼 실행</td></tr>
+            <tr><td class="key">성경 (절 지정)</td><td><code>약자+장:절</code></td><td><code>요3:16</code></td><td>해당 장 PPT를 열고 지정한 절 슬라이드로 이동</td></tr>
+            <tr><td class="key">성경 (절~절 지정)</td><td><code>약자+장:절~절</code></td><td><code>요3:16~23</code></td><td>해당 장 PPT를 열고 첫번째 지정된 절 슬라이드로 이동</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="sub-section">
+        <div class="sub-title">입력 예시 모음</div>
+        <table class="guide-table">
+          <thead><tr><th>입력값</th><th>실행 결과</th></tr></thead>
+          <tbody>
+            <tr><td class="key">23</td><td>찬송가 23장 PPT 슬라이드쇼 실행</td></tr>
+            <tr><td class="key">찬100</td><td>찬송가 100장 PPT 슬라이드쇼 실행</td></tr>
+            <tr><td class="key">//7</td><td>교독문 7번 PPT 슬라이드쇼 실행</td></tr>
+            <tr><td class="key">/2</td><td>찬양 2번 PPT 슬라이드쇼 실행</td></tr>
+            <tr><td class="key">창1</td><td>창세기 1장 PPT를 열고 1절 슬라이드로 이동</td></tr>
+            <tr><td class="key">요3:16</td><td>요한복음 3장 PPT를 열고 16절 슬라이드로 이동</td></tr>
+            <tr><td class="key">롬8:1</td><td>로마서 8장 PPT를 열고 1절 슬라이드로 이동</td></tr>
+            <tr><td class="key">시23:1~8</td><td>시편 23장 PPT를 열고 1절 슬라이드로 이동</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="sub-section">
+        <div class="sub-title">특수 명령어</div>
+        <table class="guide-table">
+          <thead><tr><th>입력값</th><th>동작</th></tr></thead>
+          <tbody>
+            <tr><td class="key">help</td><td>문의처 안내 메시지 표시</td></tr>
+            <tr><td class="key">ver</td><td>현재 프로그램 버전 정보 표시</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box blue">
+        <span class="icon">⌨️</span>
+        <div><strong>Enter 키로 빠르게:</strong> 검색어 입력 후 마우스 클릭 없이 <strong>Enter</strong>만 눌러도 즉시 실행됩니다. 예배 진행 중 빠른 조작이 가능합니다.</div>
+      </div>
+      <div class="info-box orange" style="margin-top:8px">
+        <span class="icon">⚠️</span>
+        <div><strong>파일이 없을 경우:</strong> 해당 번호나 성경 파일이 데이터 폴더에 없으면 오류 메시지가 표시됩니다. 파일이 올바른 폴더에 있는지 확인하세요.</div>
+      </div>
+    </div>
+
+    <!-- ══ 10장 (NEW) ══ -->
+    <div class="section" id="ch10">
+      <div class="section-header">
+        <div class="section-num">10</div>
+        <div class="section-title">찬양목록 관리하기 <small>파일 검증 · 추가 · 삭제</small></div>
+      </div>
+      <p class="body-text">찬양목록은 <code>C:\worshipPPT\praise\</code> 폴더에 실제로 존재하는 <code>.pptx</code> 파일을 기준으로 표시됩니다. 목록을 열 때마다 서버와 자동으로 동기화되어 실제 파일과 등록 정보가 항상 일치하도록 검증됩니다. 또한 찬양 PPT 만들기에서 저장하면 목록에 즉시 반영되며, 삭제 기능으로 파일을 제거할 수도 있습니다.</p>
+
+      <!-- 1. 찬양목록 화면 구성 -->
+      <div class="sub-section">
+        <div class="sub-title">찬양목록 화면 구성</div>
+        <p class="body-text">메인 메뉴에서 <strong>🎵 찬양목록</strong> 카드를 클릭하면 전체화면 오버레이가 열립니다. 화면 상단 헤더에는 다음 요소가 표시됩니다.</p>
+        <table class="guide-table">
+          <thead><tr><th>UI 요소</th><th>설명</th></tr></thead>
+          <tbody>
+            <tr><td class="key">← 메인 메뉴로</td><td>찬양목록 오버레이를 닫고 메인 메뉴로 돌아갑니다.</td></tr>
+            <tr><td class="key">번호순 / 제목순</td><td>목록 정렬 방식을 전환합니다. 번호순은 파일 번호 오름차순, 제목순은 가나다순으로 정렬됩니다.</td></tr>
+            <tr><td class="key">🗑 삭제 모드</td><td>클릭하면 각 곡 행 오른쪽에 <strong>[삭제]</strong> 버튼이 나타납니다. 다시 클릭하면 삭제 모드가 해제됩니다.</td></tr>
+            <tr><td class="key">총 N곡 / 검색: N건</td><td>현재 표시 중인 찬양 파일의 수를 보여줍니다.</td></tr>
+            <tr><td class="key">동기화 상태 표시</td><td>실제 파일 스캔 결과를 색상으로 표시합니다 (아래 표 참조).</td></tr>
+            <tr><td class="key">번호 또는 제목 검색</td><td>실제 원하는 파일을 검색합니다.</td></tr>
+            <tr><td class="key">파일면 정리</td><td>폴더에 존재하는 .ppt 파일을 .pptx로 변경하여 결과를 보여 줍니다.</td></tr>
+          </tbody>
+        </table>
+
+        <div style="margin-top:16px;">
+          <table class="guide-table">
+            <thead><tr><th>동기화 상태</th><th>색상</th><th>의미</th></tr></thead>
+            <tbody>
+              <tr><td class="key">✅ N개 파일 확인됨</td><td style="color:#2C5F2D; font-weight:700;">녹색</td><td>등록 정보와 실제 파일이 완전히 일치합니다.</td></tr>
+              <tr><td class="key">⚠️ N곡 불일치</td><td style="color:#B8860B; font-weight:700;">노란색</td><td>등록은 됐으나 파일이 없는 곡이 있습니다. 빈 슬롯으로 표시됩니다.</td></tr>
+              <tr><td class="key">⚡ 오프라인 (파일 미확인)</td><td style="color:#c0392b; font-weight:700;">빨간색</td><td>WorshipPPT 앱이 실행 중이 아니거나 서버에 연결되지 않아 파일 검증을 건너뜁니다. 등록된 목록 데이터만으로 표시됩니다.</td></tr>
+              <tr><td class="key">⏳ 동기화 중...</td><td style="color:#555; font-weight:700;">회색</td><td>서버에서 파일 목록을 불러오는 중입니다.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 2. 목록 행 표시 방식 -->
+      <div class="sub-section">
+        <div class="sub-title">목록 행 표시 방식</div>
+        <p class="body-text">각 행은 실제 파일 존재 여부에 따라 세 가지 상태로 표시됩니다.</p>
+        <table class="guide-table">
+          <thead><tr><th>행 상태</th><th>표시 내용</th><th>클릭 동작</th></tr></thead>
+          <tbody>
+            <tr><td class="key">파일 있음 (정상)</td><td>번호 · 제목 · ▶ 화살표 표시. 삭제 모드에서는 화살표 대신 <strong>[삭제]</strong> 버튼 표시.</td><td>해당 번호의 찬양 PPT를 슬라이드쇼로 실행합니다.</td></tr>
+            <tr><td class="key">파일 없음 (빈 슬롯)</td><td>번호 · <code>—</code> 표시. 반투명하게 표시됩니다.</td><td>클릭해도 동작 없음.</td></tr>
+            <tr><td class="key">삭제된 슬롯</td><td>번호 · <em style="color:rgba(200,80,80,0.8);">— 삭제됨 —</em> 표시. 번호 자리는 유지됩니다.</td><td>클릭해도 동작 없음.</td></tr>
+          </tbody>
+        </table>
+        <div class="info-box blue" style="margin-top:12px;">
+          <span class="icon">💡</span>
+          <div><strong>검색 기능:</strong> 목록 상단 검색창에 번호 또는 제목 일부를 입력하면 실시간으로 필터링됩니다. <strong>ESC</strong> 키로 검색어를 지울 수 있습니다.</div>
+        </div>
+      </div>
+
+      <!-- 3. 실제 파일과의 자동 교차 검증 -->
+      <div class="sub-section">
+        <div class="sub-title">실제 파일과의 자동 교차 검증</div>
+        <p class="body-text">찬양목록을 열 때마다 <code>praise\</code> 폴더를 스캔하여 등록 정보와 대조합니다. 다음 세 가지 상황이 자동으로 처리됩니다.</p>
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">①</div>
+            <div class="step-content">
+              <div class="step-title">등록됐으나 파일이 없는 경우</div>
+              <div class="step-desc">프로그램 외부에서 파일을 직접 삭제한 경우입니다. 해당 번호는 자동으로 <strong>빈 슬롯(삭제됨)</strong>으로 처리되어 번호 순서에 빈 자리가 남습니다.</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">②</div>
+            <div class="step-content">
+              <div class="step-title">파일은 있으나 등록 정보가 없는 경우</div>
+              <div class="step-desc"><code>praise\</code> 폴더에 외부에서 파일을 직접 복사한 경우입니다. 해당 번호가 자동으로 등록됩니다. 저장된 제목 정보가 있으면 복원하고, 없으면 <code>찬양 N번</code>으로 임시 등록합니다.</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">③</div>
+            <div class="step-content">
+              <div class="step-title">삭제 표시됐으나 파일이 다시 생긴 경우</div>
+              <div class="step-desc">삭제 후 같은 번호로 새 파일을 만들거나 복사한 경우입니다. 삭제 표시가 자동으로 해제되고 정상 등록 상태로 복원됩니다.</div>
+            </div>
+          </div>
+        </div>
+        <div class="info-box orange" style="margin-top:4px;">
+          <span class="icon">⚠️</span>
+          <div><strong>오프라인 시:</strong> WorshipPPT 앱이 실행 중이 아니면 파일 스캔을 건너뜁니다. 이 경우 동기화 상태에 <strong>⚡ 오프라인</strong>이 표시되며, 마지막으로 저장된 목록 데이터를 기준으로만 표시합니다.</div>
+        </div>
+      </div>
+
+      <!-- 4. 찬양 파일 삭제하기 -->
+      <div class="sub-section">
+        <div class="sub-title">찬양 파일 삭제하기</div>
+        <p class="body-text">찬양목록에서 직접 파일을 삭제할 수 있습니다. 삭제된 번호는 <strong>빈 슬롯으로 남아</strong> 이후 번호들의 순서에 영향을 주지 않습니다.</p>
+        <div class="steps">
+          <div class="step"><div class="step-num">1</div><div class="step-content"><div class="step-title">찬양목록 열기</div><div class="step-desc">메인 메뉴에서 <strong>🎵 찬양목록</strong>을 클릭하여 목록 화면을 엽니다.</div></div></div>
+          <div class="step"><div class="step-num">2</div><div class="step-content"><div class="step-title">삭제 모드 켜기</div><div class="step-desc">헤더 오른쪽의 <strong>🗑 삭제 모드</strong> 버튼을 클릭합니다. 버튼이 빨간색으로 활성화되고 각 곡 행 오른쪽에 <strong>[삭제]</strong> 버튼이 나타납니다.</div></div></div>
+          <div class="step"><div class="step-num">3</div><div class="step-content"><div class="step-title">삭제할 곡의 [삭제] 버튼 클릭</div><div class="step-desc">삭제할 찬양 행의 오른쪽 <strong>[삭제]</strong> 버튼을 클릭합니다. 삭제 모드일 때는 행을 클릭해도 슬라이드쇼가 실행되지 않습니다.</div></div></div>
+          <div class="step"><div class="step-num">4</div><div class="step-content"><div class="step-title">확인 창에서 최종 승인</div><div class="step-desc">번호·제목·경고 문구가 포함된 확인 창이 표시됩니다. <strong>[확인]</strong>을 누르면 파일이 즉시 삭제됩니다. <strong>[취소]</strong>를 누르면 아무 변화가 없습니다.</div></div></div>
+          <div class="step"><div class="step-num">5</div><div class="step-content"><div class="step-title">삭제 결과 확인</div><div class="step-desc">삭제가 완료되면 해당 번호 행이 <em>— 삭제됨 —</em> 슬롯으로 바뀌고, 헤더 상태 표시가 <strong>🗑 N번 삭제됨</strong>으로 업데이트됩니다.</div></div></div>
+          <div class="step"><div class="step-num">6</div><div class="step-content"><div class="step-title">삭제 모드 끄기</div><div class="step-desc">삭제 작업이 끝나면 <strong>🗑 삭제 모드 ON</strong> 버튼을 다시 클릭하여 일반 모드로 돌아옵니다. 이후 곡을 클릭하면 슬라이드쇼가 정상 실행됩니다.</div></div></div>
+        </div>
+
+        <div class="info-box red" style="margin-top:8px;">
+          <span class="icon">🗑️</span>
+          <div><strong>주의 — 복구 불가:</strong> 삭제된 파일은 휴지통에 가지 않고 즉시 영구 삭제됩니다. 중요한 파일은 미리 다른 곳에 백업해 두세요.</div>
+        </div>
+        <div class="info-box blue" style="margin-top:8px;">
+          <span class="icon">📌</span>
+          <div><strong>빈 슬롯 유지:</strong> 삭제된 번호는 <em>— 삭제됨 —</em>으로 표시되어 빈 자리를 유지합니다. 같은 번호로 새 파일을 만들면 빈 슬롯이 자동으로 채워집니다.</div>
+        </div>
+      </div>
+
+      <!-- 5. praise 폴더 직접 관리 -->
+      <div class="sub-section">
+        <div class="sub-title">praise 폴더 직접 관리</div>
+        <p class="body-text">Windows 탐색기에서 <code>C:\worshipPPT\praise\</code> 폴더에 파일을 직접 추가하거나 삭제할 수도 있습니다. 이 경우 다음 규칙을 따르면 찬양목록과 자동으로 동기화됩니다.</p>
+        <table class="guide-table">
+          <thead><tr><th>상황</th><th>처리 방법</th></tr></thead>
+          <tbody>
+            <tr><td class="key">파일 직접 복사</td><td>파일명을 <code>숫자_제목.pptX</code> 형식으로 저장하세요. 다음에 찬양목록을 열면 자동으로 목록에 등록됩니다. 제목은 <code>찬양 N번</code>으로 임시 등록되며, 찬양 PPT 만들기에서 같은 번호로 다시 저장하면 정확한 제목이 반영됩니다.</td></tr>
+            <tr><td class="key">파일 직접 삭제</td><td>탐색기에서 파일을 지우면 다음에 찬양목록을 열 때 해당 번호가 빈 슬롯으로 자동 처리됩니다.</td></tr>
+            <tr><td class="key">파일 이름 변경</td><td>파일명은 반드시 숫자_제목으로 만들어야 합니다. 숫자_제목이 아닌 파일은 목록에 표시되지 않습니다.</td></tr>
+          </tbody>
+        </table>
+        <div class="folder-tree">
+          <span class="folder">C:\worshipPPT\praise\</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="file">1_제목.pptX</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">← 찬양 1번 파일</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="file">2_제목.pptX</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">← 찬양 2번 파일</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">(3번 없음)</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">← 빈 슬롯으로 표시됨</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="file">4_제목.pptX</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">← 찬양 4번 파일</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="file">5_제목.pptX</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">← 찬양 5번 파일</span>
+        </div>
+      </div>
+
+      <!-- 6. 번호 관리 팁 -->
+      <div class="sub-section">
+        <div class="sub-title">번호 관리 팁</div>
+        <div class="info-box green">
+          <span class="icon">💡</span>
+          <div><strong>자주 사용하는 찬양은 낮은 번호로:</strong> 예배 중 검색창에서 <code>/1</code>, <code>/5</code>처럼 짧게 입력할 수 있어 빠른 진행에 도움이 됩니다.</div>
+        </div>
+        <div class="info-box blue" style="margin-top:8px;">
+          <span class="icon">📂</span>
+          <div><strong>즉시 반영:</strong> 찬양 PPT 만들기로 저장하면 프로그램 재시작 없이 검색창에서 바로 사용할 수 있습니다.</div>
+        </div>
+        <div class="info-box orange" style="margin-top:8px;">
+          <span class="icon">🔢</span>
+          <div><strong>번호 중복 시:</strong> 같은 번호로 저장하면 덮어쓰기 확인 창이 나타납니다. 기존 파일을 교체할 의도라면 [확인], 새 번호를 사용하려면 [취소] 후 파일명을 바꿔 저장하세요.</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ══ 11장 — 새 찬양 PPT 만들기 ══ -->
+    <div class="section" id="ch11">
+      <div class="section-header">
+        <div class="section-num">11</div>
+        <div class="section-title">새 찬양 PPT 만들기 <small>✏️ 새로 만들기 탭</small></div>
+      </div>
+
+      <p class="body-text">메인 메뉴 → <strong>찬양 PPT 만들기</strong> → <strong>✏️ 새로 만들기</strong> 탭에서 새 찬양 파일을 만듭니다. 가사가 있는 텍스트 찬양과 악보 이미지 찬양, 두 가지 방식을 모두 지원합니다.</p>
+
+      <div class="info-box green">
+        <span class="icon">💡</span>
+        <div><strong>찬양 PPT 만들기 메뉴 진입 방법:</strong> 메인 메뉴 하단의 <strong>📱 찬양 PPT 만들기</strong> 카드를 클릭하면 새 화면이 열립니다. 상단 탭에서 <strong>✏️ 새로 만들기</strong>를 선택합니다. (이미 선택된 경우 그대로 사용)</div>
+      </div>
+
+      <!-- 11-1 화면 구성 -->
+      <div class="sub-section">
+        <div class="sub-title">화면 구성 한눈에 보기</div>
+        <table class="guide-table">
+          <thead><tr><th>구성 요소</th><th>역할</th></tr></thead>
+          <tbody>
+            <tr><td class="key">🔍 검색로고 선택</td><td>슬라이드 좌상단에 표시될 로고를 선택합니다. 배경 밝기에 맞게 선택하세요.</td></tr>
+            <tr><td class="key">🖼️ 배경 이미지</td><td>슬라이드 배경으로 사용할 이미지를 선택합니다. (선택 사항)</td></tr>
+            <tr><td class="key">✏️ 슬라이드 내용</td><td>가사 입력 또는 빈 슬라이드(악보용) 중 하나를 선택합니다.</td></tr>
+            <tr><td class="key">🎨 폰트 색상</td><td>가사 텍스트 색상을 선택합니다.</td></tr>
+            <tr><td class="key">🎵 악보 파일 가져오기</td><td>참고 PPT에서 악보 이미지를 자동 추출해 삽입합니다. (악보 찬양 전용)</td></tr>
+            <tr><td class="key">💾 파일명 & 저장</td><td>번호_제목 형식으로 파일명을 지정하고 저장합니다.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 11-2 가사 찬양 만들기 -->
+      <div class="sub-section">
+        <div class="sub-title">상황 ① 가사가 있는 찬양 만들기</div>
+        <p class="body-text">가사를 입력하면 페이지별로 자동 분할되는 텍스트 찬양 PPT를 만드는 방법입니다.</p>
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-content">
+              <div class="step-title">검색로고 선택</div>
+              <div class="step-desc">
+                <strong>검색로고1</strong>(밝은 색) 또는 <strong>검색로고2</strong>(어두운 색) 중 배경 이미지와 대비가 잘 되는 것을 선택합니다.<br>
+                어두운 배경 → 로고1 (흰색 계열) / 밝은 배경 → 로고2 (어두운 색 계열) 권장.
+              </div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-content">
+              <div class="step-title">배경 이미지 선택 (선택 사항)</div>
+              <div class="step-desc">
+                <strong>[이미지 선택]</strong> 버튼을 클릭하여 JPG, PNG 배경 파일을 불러옵니다.<br>
+                불러온 이미지는 미리보기로 확인할 수 있습니다. 배경 없이 만들려면 이 단계를 건너뜁니다(흰 배경으로 생성됨).
+              </div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-content">
+              <div class="step-title">슬라이드 내용 → "가사 입력" 선택</div>
+              <div class="step-desc">슬라이드 내용 영역에서 <strong>✏️ 가사 입력</strong> 버튼이 선택된 상태인지 확인합니다. (기본값)</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">4</div>
+            <div class="step-content">
+              <div class="step-title">찬양 제목 입력</div>
+              <div class="step-desc">
+                제목 입력란에 찬양 이름을 입력합니다. 예: <code>야곱의 축복</code><br>
+                이 제목이 파일명과 찬양목록에 사용됩니다.
+              </div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">5</div>
+            <div class="step-content">
+              <div class="step-title">가사 입력</div>
+              <div class="step-desc">
+                가사 텍스트 입력창에 내용을 입력합니다.<br>
+                <strong>📌 슬라이드 나누기:</strong> 빈 줄(Enter 두 번)을 넣으면 그 위치에서 새 슬라이드로 나뉩니다.<br>
+                <strong>📌 자동 줄바꿈:</strong> 한 줄에 약 18자 이상이면 자동 줄바꿈됩니다. 자연스럽게 끊기도록 적당한 위치에서 Enter를 추가하면 더욱 깔끔합니다.<br>
+                <strong>예시:</strong><br>
+                <code style="display:block;background:#f5f5f5;padding:8px;border-radius:6px;line-height:1.8;margin-top:6px;">
+                  야곱의 축복이 내게 임하네<br>
+                  아브라함의 축복 내게 임하네<br>
+                  <br>
+                  (빈 줄 → 다음 슬라이드)<br>
+                  <br>
+                  하나님의 축복이 내게 임하네<br>
+                  예수 그리스도의 축복 임하네
+                </code>
+              </div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">6</div>
+            <div class="step-content">
+              <div class="step-title">폰트 색상 선택</div>
+              <div class="step-desc">검정·흰색·노란색·녹색 중 배경과 대비가 잘 되는 색을 선택합니다.</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">7</div>
+            <div class="step-content">
+              <div class="step-title">파일명 입력</div>
+              <div class="step-desc">
+                파일명 입력란에 <strong>번호_제목</strong> 형식으로 입력합니다.<br>
+                예: <code>1_야곱의 축복</code> → <code>1_야곱의 축복.pptx</code>로 저장됩니다.<br>
+                번호는 찬양목록에서 순서를 결정하며, 입력창 오른쪽에 번호 사용 가능 여부(✅/⚠️)가 표시됩니다.
+              </div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">8</div>
+            <div class="step-content">
+              <div class="step-title">저장 폴더 확인</div>
+              <div class="step-desc">기본 경로는 <code>C:\worshipPPT\praise\</code>입니다. 특별한 이유가 없으면 변경하지 않습니다.</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">9</div>
+            <div class="step-content">
+              <div class="step-title">PPT 저장 클릭</div>
+              <div class="step-desc">하단 <strong>[💾 PPT 저장]</strong> 버튼을 클릭하면 저장이 완료됩니다. 완료 알림이 표시되고 찬양목록에 즉시 등록됩니다.</div>
+            </div>
+          </div>
+        </div>
+        <div class="info-box green" style="margin-top:8px;">
+          <span class="icon">✅</span>
+          <div>저장된 파일은 예배 중 검색창에서 <strong>번호 입력</strong>으로 즉시 슬라이드쇼를 열 수 있습니다.</div>
+        </div>
+      </div>
+
+      <!-- 11-3 빈 슬라이드 만들기 -->
+      <div class="sub-section">
+        <div class="sub-title">상황 ② 빈 슬라이드 만들기</div>
+        <p class="body-text">빈 슬라이드를 만들거나 빈 슬라이드에 악보 이미지를 삽입하는 방법입니다. 두 가지 방식을 선택할 수 있습니다.</p>
+
+        <div class="info-box blue" style="margin-bottom:16px;">
+          <span class="icon">📌</span>
+          <div><strong>악보 찬양의 두 가지 방식</strong><br>
+          <strong>방식 A</strong> — 빈 슬라이드를 만들어 저장한 후 직접 PowerPoint에서 악보 이미지를 삽입<br>
+          <strong>방식 B</strong> — 빈 슬라이드에 기존 악보 PPT 파일을 "참고 파일"로 지정하여 악보를 자동 추출·삽입</div>
+        </div>
+
+        <p class="body-text" style="font-weight:700; color:#1B5E20;">방식 A — 빈 슬라이드 만들기 후 직접 편집</p>
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-content">
+              <div class="step-title">검색로고 선택</div>
+              <div class="step-desc">배경을 생각하여 어두운 배경이면 로고1을 밝은 배경이면 로고2를 선택합니다.</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-content">
+              <div class="step-title">배경 이미지 선택</div>
+              <div class="step-desc">컴퓨터나 외장장치에서 원하는 배경을 선택합니다. 복잡하지 않은 단순한 배경을 추천합니다.</div>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-content">
+              <div class="step-title">내용 입력에서 "빈 슬라이드" 선택</div>
+              <div class="step-desc">슬라이드 내용 영역에서 <strong>📄 빈 슬라이드</strong> 버튼을 클릭합니다. 페이지 수 입력창이 나타납니다.</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">4</div>
+            <div class="step-content">
+              <div class="step-title">페이지 수 지정</div>
+              <div class="step-desc">악보 슬라이드가 몇 장인지 입력합니다. 빈 슬라이드만 만들경우 만들 찬양의 전체 페이지를 고려하여 만듭니다.</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">5</div>
+            <div class="step-content">
+              <div class="step-title">로고·배경 선택 후 저장</div>
+              <div class="step-desc">위의 가사 찬양과 동일하게 로고·배경·파일명을 설정하고 <strong>[💾 PPT 저장]</strong>을 클릭합니다.</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">6</div>
+            <div class="step-content">
+              <div class="step-title">PowerPoint에서 악보 삽입</div>
+              <div class="step-desc">저장된 파일(<code>C:\worshipPPT\praise\번호_제목.pptx</code>)을 PowerPoint로 열어 각 슬라이드에 악보 이미지를 삽입합니다. 삽입 후 PowerPoint에서 직접 저장합니다.</div>
+            </div>
+          </div>
+        </div>
+
+        <p class="body-text" style="font-weight:700; color:#1B5E20; margin-top:20px;">방식 B — 참고 파일에서 악보 자동 추출·삽입</p>
+        <p class="body-text">기존 악보 PPT 파일(참고 파일)에서 악보 이미지를 자동으로 추출하여 새 파일에 삽입합니다. 수작업 없이 빠르게 악보 찬양을 만들 수 있습니다.</p>
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-content">
+              <div class="step-title">내용 입력에서 "빈 슬라이드" 선택</div>
+              <div class="step-desc">슬라이드 내용 영역에서 <strong>📄 빈 슬라이드</strong> 버튼을 클릭합니다. 페이지 수 입력창이 나타납니다. "빈 슬라이드 + 악보"일 경우 참고 파일을 선택하면 참고 파일 선택의 하단에 이 찬양이 몇장의 슬라이드로 구성되어 있는지 표시 되므로 이것을 참고하여 슬라이드 페이지 수를 정하면 됩니다.</div>
+            </div>
+          </div>
+          </div>
+          <div class="step">
+            <div class="step-num">4</div>
+            <div class="step-content">
+              <div class="step-title">악보 참고 파일 불러오기</div>
+              <div class="step-desc">
+                <strong>🎵 악보 참고 파일</strong> 영역에서 <strong>[📂 파일 선택]</strong>을 클릭하여 기존 악보가 들어 있는 PPT/PPTX 파일을 선택합니다.<br>
+                파일이 로드되면 <em>✅ 로드 완료 — N장</em>이 표시됩니다.
+              </div>
+            </div>
+          </div>
+          
+          <div class="step">
+            <div class="step-num">5</div>
+            <div class="step-content">
+              <div class="step-title">로고·배경 선택 후 저장</div>
+              <div class="step-desc">로고·배경·파일명을 설정하고 <strong>[💾 PPT 저장]</strong>을 클릭하면, 악보가 자동으로 삽입된 완성 파일이 저장됩니다.</div>
+            </div>
+          </div>
+        </div>
+        <div class="info-box blue" style="margin-top:8px;">
+          <span class="icon">💡</span>
+          <div><strong>악보 추출 방식:</strong> 참고 파일의 각 슬라이드에서 가장 큰 이미지(p:pic)를 자동으로 찾아 추출합니다. 로고는 자동으로 제외됩니다. 별도 지정 없이도 악보가 정확하게 추출됩니다.</div>
+        </div>
+      </div>
+
+      <!-- 11-4 파일명 규칙 -->
+      <div class="sub-section">
+        <div class="sub-title">파일명 규칙 및 번호 관리</div>
+        <p class="body-text">파일명은 찬양목록 자동 등록의 핵심입니다. 반드시 아래 규칙을 따르세요.</p>
+        <table class="guide-table">
+          <thead><tr><th>형식</th><th>예시</th><th>결과</th></tr></thead>
+          <tbody>
+            <tr><td class="key">번호_제목</td><td><code>1_야곱의 축복</code></td><td>찬양목록 1번 "야곱의 축복"으로 등록 ✅</td></tr>
+            <tr><td class="key">번호_제목</td><td><code>68_찬양하세</code></td><td>찬양목록 68번 "찬양하세"로 등록 ✅</td></tr>
+            <tr><td class="key">번호만</td><td><code>5</code></td><td>찬양목록 5번 "찬양 5번"으로 등록 ✅</td></tr>
+            <tr><td class="key">제목만</td><td><code>야곱의 축복</code></td><td>찬양목록 미등록 ❌ (번호 없음)</td></tr>
+          </tbody>
+        </table>
+        <div class="info-box orange">
+          <span class="icon">⚠️</span>
+          <div><strong>번호 중복 주의:</strong> 이미 사용 중인 번호로 저장하면 덮어쓰기 확인창이 표시됩니다. 덮어쓰면 기존 파일은 삭제됩니다. 다른 번호를 사용하려면 [취소]를 누르고 파일명을 변경하세요.</div>
+        </div>
+        <div class="info-box green" style="margin-top:8px;">
+          <span class="icon">💡</span>
+          <div><strong>번호 사용 여부 미리 확인:</strong> 파일명 입력 중 입력창 옆에 ✅(사용 가능) 또는 ⚠️(이미 사용 중) 아이콘이 실시간으로 표시됩니다.</div>
+        </div>
+      </div>
+
+      <!-- 11-5 자주 있는 상황별 대처 -->
+      <div class="sub-section">
+        <div class="sub-title">자주 있는 상황별 대처</div>
+        <table class="guide-table">
+          <thead><tr><th>상황</th><th>해결 방법</th></tr></thead>
+          <tbody>
+            <tr><td class="key">가사가 너무 길어 한 슬라이드에 안 들어갈 것 같아요</td><td>빈 줄로 슬라이드를 나누거나, 긴 줄은 직접 Enter로 잘라줍니다. 18자 이상은 자동 줄바꿈되지만 어색한 위치에서 잘릴 수 있으니 미리 적당히 나눠주세요.</td></tr>
+            <tr><td class="key">배경 없이 흰 배경 찬양을 만들고 싶어요</td><td>배경 이미지를 선택하지 않으면 자동으로 흰 배경으로 생성됩니다.</td></tr>
+            <tr><td class="key">악보 이미지가 슬라이드에서 잘려 보여요</td><td>기존 찬양 수정 탭에서 해당 찬양을 선택한 뒤, 악보 위치 및 배율 수정 패널에서 배율을 줄이거나 X/Y 위치를 조정하고 다시 저장합니다.</td></tr>
+            <tr><td class="key">저장했는데 찬양목록에 보이지 않아요</td><td>파일명이 <code>번호_제목</code> 형식인지 확인합니다. 찬양목록 화면에서 🔄 새로고침을 클릭해보세요. 그래도 없으면 저장 폴더(<code>C:\worshipPPT\praise\</code>)에 파일이 실제로 존재하는지 탐색기로 확인합니다.</td></tr>
+            <tr><td class="key">번호를 잘못 지정했어요</td><td>기존 찬양 수정 탭에서 해당 찬양을 선택한 뒤 번호를 바꿔 다시 저장합니다. 기존 파일은 자동으로 삭제됩니다.</td></tr>
+            <tr><td class="key">참고 파일에서 악보가 추출이 안 돼요</td><td>참고 파일 슬라이드에 이미지(그림) 도형이 있는지 확인합니다. 텍스트만 있거나 배경으로만 이미지가 삽입된 파일은 추출이 어렵거나 배경이 추출될 수 있습니다. 또한 배경과 악보의 이미지가 같은 크기로 만들어져 있는 경우는 악보를 한쪽으로 밀고 배경을 선택하여 삭제하고 저장한 후 다시 시도하면 잘 추출 됩니다.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+    <!-- ══ 12장 — 기존 찬양 수정하기 ══ -->
+    <div class="section" id="ch12">
+      <div class="section-header">
+        <div class="section-num">12</div>
+        <div class="section-title">기존 찬양 수정하기 <small>🔄 기존 찬양 수정 탭</small></div>
+      </div>
+
+      <p class="body-text">이미 저장된 찬양 PPT 파일의 번호·제목·로고·배경·가사·폰트색상·악보 위치와 배율을 수정할 때 사용합니다.<br>
+      메인 메뉴에서 <strong>📱 찬양 PPT 만들기</strong>를 클릭한 뒤, 상단 탭에서 <strong>🔄 기존 찬양 수정</strong>을 선택하여 진입합니다.</p>
+
+      <div class="info-box blue">
+        <span class="icon">💡</span>
+        <div><strong>핵심 원칙:</strong> 수정하고 싶은 항목만 변경하면 됩니다. 변경하지 않은 항목(로고·배경·가사 등)은 기존 상태를 그대로 유지합니다. 예를 들어 가사 오타만 고치고 싶다면, 배경·로고는 건드리지 않고 가사만 수정한 뒤 저장하면 됩니다.</div>
+      </div>
+
+      <!-- 12-1 전체 흐름 -->
+      <div class="sub-section">
+        <div class="sub-title">전체 작업 흐름 한눈에 보기</div>
+        <div class="steps">
+          <div class="step"><div class="step-num">1</div><div class="step-content"><div class="step-title">수정할 찬양 선택</div><div class="step-desc">목록에서 원하는 찬양을 클릭합니다. 파일 유형(텍스트/악보)이 자동 판별됩니다.</div></div></div>
+          <div class="step"><div class="step-num">2</div><div class="step-content"><div class="step-title">번호·제목 변경 (선택)</div><div class="step-desc">번호나 제목을 바꾸려면 입력란을 수정합니다. 그대로 유지할 경우 건드릴 필요 없습니다.</div></div></div>
+          <div class="step"><div class="step-num">3</div><div class="step-content"><div class="step-title">검색로고 변경 (선택)</div><div class="step-desc">로고를 바꾸려면 원하는 로고를 클릭합니다. 기본값은 "로고변경 없음(기존 유지)"입니다.</div></div></div>
+          <div class="step"><div class="step-num">4</div><div class="step-content"><div class="step-title">배경 이미지 변경 (선택)</div><div class="step-desc">배경을 교체하거나 제거하려면 해당 버튼을 사용합니다. 미리보기로 확인할 수 있습니다.</div></div></div>
+          <div class="step"><div class="step-num">5</div><div class="step-content"><div class="step-title">슬라이드 내용(가사) 수정 또는 악보 위치 수정 (선택)</div><div class="step-desc">텍스트 찬양이면 가사를 수정할 수 있고, 악보 찬양이면 악보 위치·배율을 조정할 수 있습니다.</div></div></div>
+          <div class="step"><div class="step-num">6</div><div class="step-content"><div class="step-title">폰트 색상 변경 (선택)</div><div class="step-desc">가사 텍스트 색상을 바꾸려면 원하는 색상을 클릭합니다.</div></div></div>
+          <div class="step"><div class="step-num">7</div><div class="step-content"><div class="step-title">🔄 수정 후 저장 클릭</div><div class="step-desc">하단의 주황색 저장 버튼을 클릭하면 수정이 완료됩니다.</div></div></div>
+        </div>
+      </div>
+
+      <!-- 12-2 찬양 선택 -->
+      <div class="sub-section">
+        <div class="sub-title">STEP 1 — 수정할 찬양 선택</div>
+        <p class="body-text">탭을 열면 <code>C:\worshipPPT\praise\</code> 폴더의 실제 파일 목록이 표시됩니다. 검색창에 번호나 제목 일부를 입력하면 목록이 실시간으로 필터링됩니다.</p>
+
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-content">
+              <div class="step-title">검색창에서 찬양 검색 (선택)</div>
+              <div class="step-desc">
+                목록 상단 검색창에 번호 또는 제목 일부를 입력하면 실시간으로 필터링됩니다.<br>
+                예: <code>야곱</code>을 입력하면 제목에 "야곱"이 포함된 찬양만 표시됩니다.<br>
+                예: <code>3</code>을 입력하면 3번, 13번, 30번 등 번호에 3이 포함된 찬양이 표시됩니다.<br>
+                검색 후 원하는 찬양이 보이면 해당 행을 클릭합니다. <strong>[✕ 초기화]</strong> 버튼을 누르면 검색이 해제됩니다.
+              </div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-content">
+              <div class="step-title">목록에서 찬양 행 클릭</div>
+              <div class="step-desc">
+                원하는 찬양 행을 클릭하면 목록 아래에 <strong>수정 패널</strong>이 펼쳐지고, 상단에 선택된 찬양 정보(번호·제목)가 녹색 카드로 표시됩니다.<br>
+                선택을 취소하려면 녹색 카드 오른쪽의 <strong>[✕ 선택 해제]</strong> 버튼을 클릭합니다.
+              </div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-content">
+              <div class="step-title">파일 유형 자동 판별 확인</div>
+              <div class="step-desc">
+                찬양을 클릭하는 즉시 파일을 분석하여 <strong>텍스트(가사) 파일</strong>인지, <strong>악보 이미지 파일</strong>인지 자동으로 판별합니다.<br>
+                이 결과에 따라 수정 가능한 옵션이 달라집니다.<br>
+                &nbsp;&nbsp;• 텍스트 파일: 슬라이드 내용(가사) 수정 가능 / 악보 위치 수정 비활성<br>
+                &nbsp;&nbsp;• 악보 파일: 악보 위치·배율 수정 가능 / 슬라이드 내용 수정 비활성
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-box orange">
+          <span class="icon">⚠️</span>
+          <div>목록에 표시되는 파일은 실제 저장 폴더에 있는 파일만입니다. <strong>WorshipPPT 앱이 실행 중이어야</strong> 목록이 정확하게 표시되고 수정 기능이 작동합니다. 앱이 꺼져 있으면 목록이 비거나 오류가 발생할 수 있습니다.</div>
+        </div>
+      </div>
+
+      <!-- 12-3 번호/제목 변경 -->
+      <div class="sub-section">
+        <div class="sub-title">STEP 2 — 번호 &amp; 제목 변경 (선택)</div>
+        <p class="body-text">찬양을 선택하면 녹색 카드 안에 현재 번호와 제목이 입력란에 자동으로 채워집니다. 변경하고 싶은 항목만 수정하면 됩니다.</p>
+
+        <table class="guide-table">
+          <thead><tr><th>항목</th><th>설명</th></tr></thead>
+          <tbody>
+            <tr><td class="key">번호 변경</td><td>1~9999 범위의 숫자를 입력합니다. 저장 시 새 파일명(<code>새번호_제목.pptx</code>)으로 저장되고, 기존 파일(<code>구번호_제목.pptx</code>)은 자동으로 삭제됩니다.</td></tr>
+            <tr><td class="key">제목 변경</td><td>제목 입력란을 수정합니다. 저장 시 파일명과 찬양목록이 모두 자동 업데이트됩니다.</td></tr>
+            <tr><td class="key">↺ 원래대로</td><td>번호·제목을 선택 당시의 원래 값으로 한 번에 되돌립니다.</td></tr>
+          </tbody>
+        </table>
+
+        <p class="body-text" style="font-weight:700; color:#1B5E20; margin-top:14px; margin-bottom:6px;">📌 실전 예시</p>
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">예</div>
+            <div class="step-content">
+              <div class="step-title">"야곱의 축복"을 15번에서 3번으로 바꾸고 싶은 경우</div>
+              <div class="step-desc">
+                번호 입력란의 값을 <code>15</code>에서 <code>3</code>으로 변경합니다.<br>
+                3번이 이미 다른 찬양으로 사용 중이라면 입력란 아래에 <strong>⚠️ 이미 사용 중인 번호</strong> 경고가 표시됩니다. 이 경우 기존 3번 파일이 덮어써지므로 주의하세요.<br>
+                저장하면 <code>3_야곱의 축복.pptx</code> 파일이 새로 만들어지고, 기존 <code>15_야곱의 축복.pptx</code>는 자동으로 삭제됩니다.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-box green">
+          <span class="icon">✅</span>
+          <div>번호와 제목을 동시에 변경해도 됩니다. 저장 시 <code>새번호_새제목.pptx</code>로 자동 저장되며 기존 파일은 자동 삭제됩니다.</div>
+        </div>
+      </div>
+
+      <!-- 12-4 로고 변경 -->
+      <div class="sub-section">
+        <div class="sub-title">STEP 3 — 검색로고 변경 (선택)</div>
+        <p class="body-text">슬라이드 좌상단에 표시되는 로고 이미지를 교체하거나 그대로 유지할 수 있습니다. 로고는 예배 중 검색 기능과 연동됩니다.</p>
+
+        <table class="guide-table">
+          <thead><tr><th>옵션</th><th>설명</th><th>추천 상황</th></tr></thead>
+          <tbody>
+            <tr><td class="key">검색로고1</td><td>밝은 색(흰색 계열) 로고입니다.</td><td>어두운 배경 이미지를 사용할 때</td></tr>
+            <tr><td class="key">검색로고2</td><td>어두운 색 로고입니다.</td><td>밝은 배경 이미지를 사용할 때</td></tr>
+            <tr><td class="key">로고변경 없음</td><td>기존 로고를 그대로 유지합니다.</td><td><strong>(기본값)</strong> — 로고를 바꿀 필요가 없을 때</td></tr>
+          </tbody>
+        </table>
+
+        <div class="info-box blue" style="margin-top:10px;">
+          <span class="icon">💡</span>
+          <div>로고 썸네일을 클릭하면 선택 상태(파란 테두리)가 됩니다. <strong>로고변경 없음</strong>을 클릭하면 기존 로고가 유지됩니다. 수정 전에 배경 이미지의 밝기를 먼저 확인하여 대비가 잘 되는 로고를 선택하세요.</div>
+        </div>
+      </div>
+
+      <!-- 12-5 배경 변경 -->
+      <div class="sub-section">
+        <div class="sub-title">STEP 4 — 배경 이미지 변경 (선택)</div>
+        <p class="body-text">배경 이미지를 새 이미지로 교체하거나, 완전히 제거(흰 배경)하거나, 기존 그대로 유지할 수 있습니다.</p>
+
+        <table class="guide-table">
+          <thead><tr><th>버튼</th><th>설명</th></tr></thead>
+          <tbody>
+            <tr><td class="key">이미지 변경</td><td>새 배경 이미지 파일(JPG, PNG)을 탐색기에서 선택합니다. 선택 즉시 오른쪽에 <strong>썸네일 미리보기</strong>가 표시됩니다.</td></tr>
+            <tr><td class="key">🗑️ 배경 제거</td><td>기존 배경 이미지를 완전히 삭제하고 흰 배경으로 저장합니다.</td></tr>
+            <tr><td class="key">✔ 기존 유지중</td><td>기존 배경 이미지를 변경 없이 유지합니다. <strong>(기본값)</strong></td></tr>
+          </tbody>
+        </table>
+
+        <p class="body-text" style="font-weight:700; color:#1B5E20; margin-top:14px; margin-bottom:6px;">🖼️ 배경 이미지 미리보기 상세 설명</p>
+        <p class="body-text">배경 이미지를 새로 선택하면 버튼 오른쪽에 <strong>150×94픽셀 크기의 썸네일 미리보기</strong>가 나타납니다. 이 미리보기는 실제 슬라이드 비율(16:9)에 맞춰 표시됩니다. 썸네일 아래에는 선택한 파일 이름이 함께 표시되어 어떤 파일이 선택됐는지 확인할 수 있습니다.</p>
+
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">예</div>
+            <div class="step-content">
+              <div class="step-title">"야곱의 축복" 배경을 새 이미지로 교체하는 경우</div>
+              <div class="step-desc">
+                1. <strong>[이미지 변경]</strong> 버튼(파란색)을 클릭합니다.<br>
+                2. 탐색기가 열리면 교체할 이미지 파일(예: <code>배경_봄.jpg</code>)을 선택합니다.<br>
+                3. 버튼 오른쪽에 선택한 이미지의 썸네일이 나타납니다. 여기서 이미지가 원하는 것이 맞는지 확인합니다.<br>
+                4. 아울러 <strong>🗑️ 배경 제거</strong> 버튼과 <strong>✔ 기존 유지중</strong> 버튼이 함께 표시됩니다.<br>
+                5. 다른 이미지로 바꾸고 싶으면 <strong>[이미지 변경]</strong>을 다시 클릭하여 새 파일을 선택합니다.<br>
+                6. 배경을 선택하지 않고 되돌리고 싶으면 <strong>[✔ 기존 유지중]</strong>을 클릭합니다.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-box orange" style="margin-top:8px;">
+          <span class="icon">📌</span>
+          <div><strong>미리보기는 썸네일만 표시됩니다.</strong> 실제 슬라이드에서는 배경이 전체 크기로 늘어나 표시됩니다. 미리보기에서 이미지 구성과 색감을 확인하고, 저장 후에 찬양목록에서 슬라이드쇼를 실행하여 실제 결과를 최종 확인하는 것을 권장합니다.</div>
+        </div>
+      </div>
+
+      <!-- 12-6 슬라이드 내용(가사) 수정 -->
+      <div class="sub-section">
+        <div class="sub-title">STEP 5 — 슬라이드 내용(가사) 수정 (텍스트 찬양 전용)</div>
+        <p class="body-text">이 프로그램으로 만든 텍스트 찬양 파일은 기존 가사를 그대로 불러와 수정할 수 있습니다. 이 항목은 <strong>텍스트(가사) 파일일 때만 활성화</strong>됩니다. 악보 이미지 파일은 회색으로 비활성 표시됩니다.</p>
+
+        <p class="body-text" style="font-weight:700; color:#1B5E20; margin-bottom:6px;">📝 슬라이드 내용 영역의 세 가지 상태</p>
+
+        <table class="guide-table">
+          <thead><tr><th>상태</th><th>표시 방식</th><th>설명</th></tr></thead>
+          <tbody>
+            <tr><td class="key">가사 인식됨<br>(기본 상태)</td><td>노란색 영역에 기존 가사 첫 줄 요약이 표시됩니다.<br><strong>[✏️ 내용 수정하기]</strong> 버튼이 활성화됩니다.</td><td>이 프로그램으로 만든 파일은 가사가 자동으로 인식됩니다. 수정이 필요하면 버튼을 클릭하여 편집창을 엽니다.</td></tr>
+            <tr><td class="key">가사 미인식<br>(악보 파일)</td><td>회색 영역에 "이 찬양은 악보 슬라이드입니다."가 표시됩니다.<br><strong>[✏️ 내용 수정하기]</strong> 버튼이 비활성(회색)으로 표시됩니다.</td><td>악보 이미지 파일은 텍스트 수정이 불가합니다. 악보 위치/배율 수정 기능을 사용하세요.</td></tr>
+          </tbody>
+        </table>
+
+        <p class="body-text" style="font-weight:700; color:#1B5E20; margin-top:16px; margin-bottom:6px;">✏️ 내용 수정하기 — 자세한 사용법</p>
+
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-content">
+              <div class="step-title">[✏️ 내용 수정하기] 버튼 클릭</div>
+              <div class="step-desc">버튼을 클릭하면 노란색 영역 아래에 편집창이 열립니다. 편집창 상단에는 기존 가사 전체가 회색 배경 미리보기 영역에 표시되고, 그 아래 흰색 텍스트 입력창에도 기존 가사가 자동으로 채워집니다.</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-content">
+              <div class="step-title">기존 가사 미리보기 확인</div>
+              <div class="step-desc">
+                편집창 상단의 <strong>회색 배경 박스</strong>는 현재 파일에 저장된 가사를 그대로 보여주는 읽기 전용 미리보기입니다. 수정 전에 원본 가사를 확인하는 용도입니다. 이 영역은 직접 편집할 수 없습니다.<br>
+                예:
+                <code style="display:block;background:#f5f5f5;padding:8px;border-radius:6px;line-height:1.8;margin-top:6px;">
+                  야곱의 축복이 내게 임하네<br>
+                  아브라함의 축복 내게 임하네<br>
+                  <br>
+                  하나님의 축복이 내게 임하네<br>
+                  예수 그리스도의 축복 임하네
+                </code>
+              </div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-content">
+              <div class="step-title">흰색 입력창에서 가사 직접 수정</div>
+              <div class="step-desc">
+                미리보기 아래의 <strong>흰색 텍스트 입력창</strong>에 기존 가사가 채워져 있습니다. 이 창에서 직접 내용을 수정합니다.<br>
+                <strong>📌 슬라이드 나누기:</strong> 빈 줄(Enter 두 번)을 넣으면 그 위치에서 새 슬라이드로 분리됩니다.<br>
+                <strong>📌 줄 나누기:</strong> 한 슬라이드 안에서 줄을 바꾸려면 Enter를 한 번만 누릅니다.<br>
+                <strong>수정 예시:</strong> 2절 "예수"를 "주님"으로 바꾸고 싶은 경우, 입력창에서 해당 부분을 찾아 직접 수정합니다.
+              </div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">4</div>
+            <div class="step-content">
+              <div class="step-title">취소 또는 유지</div>
+              <div class="step-desc">수정을 취소하고 싶으면 입력창 오른쪽 하단의 <strong>[✕ 취소]</strong> 버튼을 클릭합니다. 편집창이 닫히고 가사 수정이 적용되지 않습니다. 이미 수정한 내용이 있어도 취소 클릭 시 원래 가사가 유지됩니다.</div>
+            </div>
+          </div>
+        </div>
+
+        <p class="body-text" style="font-weight:700; color:#1B5E20; margin-top:16px; margin-bottom:6px;">📌 가사 입력 형식 예시</p>
+        <table class="guide-table">
+          <thead><tr><th>원하는 결과</th><th>입력 방법</th></tr></thead>
+          <tbody>
+            <tr><td class="key">한 슬라이드 안에서 줄 바꾸기</td><td>Enter 1번 (빈 줄 없이)</td></tr>
+            <tr><td class="key">슬라이드 구분 (새 슬라이드 시작)</td><td>Enter 2번 (빈 줄 1개 삽입)</td></tr>
+            <tr><td class="key">후렴을 별도 슬라이드로 분리</td><td>후렴 앞뒤에 빈 줄 삽입</td></tr>
+          </tbody>
+        </table>
+
+        <div class="info-box blue" style="margin-top:8px;">
+          <span class="icon">💡</span>
+          <div><strong>외부 PPT 파일은 가사가 자동 인식되지 않을 수 있습니다.</strong> 이 경우 "이 찬양은 악보 슬라이드입니다."로 표시됩니다. 가사를 새로 입력하고 싶다면 <strong>새로 만들기</strong> 탭에서 같은 번호로 새 파일을 만드세요.</div>
+        </div>
+      </div>
+
+      <!-- 12-7 악보 위치/배율 수정 -->
+      <div class="sub-section">
+        <div class="sub-title">STEP 5-1 — 악보 위치 및 배율 수정 (악보 찬양 전용)</div>
+        <p class="body-text">악보 이미지의 슬라이드 내 위치(X/Y)와 크기(배율%)를 조정합니다. <strong>악보 파일일 때만 활성화</strong>됩니다. 텍스트 찬양 파일은 이 버튼이 회색으로 비활성 표시됩니다.</p>
+
+        <div class="info-box blue" style="margin-bottom:14px;">
+          <span class="icon">💡</span>
+          <div><strong>100% 기준:</strong> 배율 100%는 항상 <strong>참고 파일에서 처음 삽입 당시의 원본 크기</strong>를 기준으로 합니다. 예를 들어 50%로 저장했다가 나중에 다시 100%로 바꾸면 처음 삽입 당시의 원본 크기로 돌아갑니다.</div>
+        </div>
+
+        <p class="body-text" style="font-weight:700; color:#1B5E20; margin-bottom:8px;">📐 악보 위치 및 배율 수정하기 — 사용 절차</p>
+
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-content">
+              <div class="step-title">[📐 악보 위치 및 배율 수정하기] 버튼 클릭</div>
+              <div class="step-desc">버튼을 클릭하면 위치/배율 입력 패널이 아래로 열립니다. 패널 상단에는 <strong>📋 페이지 통합 수정</strong>과 <strong>📄 페이지 분리 수정</strong> 두 가지 모드 버튼이 있습니다.</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-content">
+              <div class="step-title">수정 모드 선택</div>
+              <div class="step-desc">
+                <strong>📋 페이지 통합 수정</strong> (기본값): 모든 슬라이드에 동일한 X/Y/배율을 일괄 적용합니다. 일반적인 경우 이 모드를 사용합니다.<br>
+                <strong>📄 페이지 분리 수정</strong>: 1페이지와 나머지 페이지(2페이지 이후 전체)에 서로 다른 값을 적용합니다. 1페이지(예: 제목+전주 악보)의 크기가 나머지와 다를 때 사용합니다.
+              </div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-content">
+              <div class="step-title">현재 위치와 배율 확인</div>
+              <div class="step-desc">
+                입력란 아래에 <strong>회색 배경의 읽기 전용 입력란</strong>이 표시됩니다. 여기에 파일에 현재 저장된 X/Y/배율 값이 표시됩니다. 이 값을 참고하여 어느 방향으로 얼마나 조정할지 판단합니다.<br>
+                예: 현재 배율이 <code>50%</code>로 표시되어 있고 악보가 너무 작다면, 입력란에 <code>80</code> 또는 <code>100</code>을 입력하여 키울 수 있습니다.
+              </div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">4</div>
+            <div class="step-content">
+              <div class="step-title">X / Y / 배율 값 입력</div>
+              <div class="step-desc">
+                <strong>X (좌 여백, cm):</strong> 슬라이드 왼쪽 끝에서 악보까지의 거리(cm). 0이면 왼쪽 끝에 붙습니다.<br>
+                <strong>Y (상 여백, cm):</strong> 슬라이드 위쪽 끝에서 악보까지의 거리(cm). 0이면 위쪽 끝에 붙습니다.<br>
+                <strong>크기 배율 (%):</strong> 원본 악보 대비 비율. 100이면 원본 크기, 50이면 절반 크기, 150이면 1.5배 크기입니다.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <p class="body-text" style="font-weight:700; color:#1B5E20; margin-top:14px; margin-bottom:6px;">📋 페이지 통합 수정 vs 📄 페이지 분리 수정 비교</p>
+        <table class="guide-table">
+          <thead><tr><th>모드</th><th>설명</th><th>사용 시기</th></tr></thead>
+          <tbody>
+            <tr><td class="key">📋 페이지 통합 수정</td><td>모든 슬라이드에 동일한 X/Y/배율을 적용합니다. <strong>(기본값)</strong></td><td>모든 악보 크기와 위치가 같을 때</td></tr>
+            <tr><td class="key">📄 페이지 분리 수정</td><td>1페이지와 나머지 페이지에 각각 다른 값을 설정합니다.</td><td>1페이지 악보(제목·전주 등)와 나머지 악보 크기가 다를 때</td></tr>
+          </tbody>
+        </table>
+
+        <p class="body-text" style="font-weight:700; color:#1B5E20; margin-top:14px; margin-bottom:6px;">📌 현재 위치와 배율 읽는 방법 — 실전 예시</p>
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">예1</div>
+            <div class="step-content">
+              <div class="step-title">악보가 오른쪽으로 치우쳐 있을 때</div>
+              <div class="step-desc">
+                현재 위치 표시가 <code>X: 4.5 cm, Y: 0 cm, 배율: 100%</code>라고 표시됩니다.<br>
+                악보가 슬라이드 왼쪽 기준으로 4.5cm 오른쪽에 있다는 뜻입니다.<br>
+                왼쪽 끝으로 붙이려면 X를 <code>0</code>으로 변경 후 저장합니다.
+              </div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">예2</div>
+            <div class="step-content">
+              <div class="step-title">악보가 너무 작을 때 (배율 50% → 100%로 복원)</div>
+              <div class="step-desc">
+                현재 위치 표시가 <code>X: 0 cm, Y: 0 cm, 배율: 50%</code>로 표시됩니다.<br>
+                배율을 <code>100</code>으로 바꾸고 저장하면 처음 삽입 당시 원본 크기로 복원됩니다.
+              </div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">예3</div>
+            <div class="step-content">
+              <div class="step-title">악보를 슬라이드 중간 아래쪽으로 옮기고 싶을 때</div>
+              <div class="step-desc">
+                슬라이드 세로 크기는 약 19.05cm(16:9 기준)입니다.<br>
+                악보를 위에서 7cm 아래에 놓으려면 Y를 <code>7</code>로 입력하면 됩니다.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <p class="body-text" style="font-weight:700; color:#1B5E20; margin-top:14px; margin-bottom:6px;">📐 악보 위치 조정 빠른 참고표</p>
+        <table class="guide-table">
+          <thead><tr><th>원하는 결과</th><th>설정 값</th></tr></thead>
+          <tbody>
+            <tr><td class="key">악보를 슬라이드 왼쪽 상단에 꽉 채우기</td><td>X: 0, Y: 0, 배율: 100%</td></tr>
+            <tr><td class="key">악보를 오른쪽으로 4cm 옮기기</td><td>X: 4, Y: 0, 배율: 100%</td></tr>
+            <tr><td class="key">악보를 아래로 2cm 내리기</td><td>X: 0, Y: 2, 배율: 100%</td></tr>
+            <tr><td class="key">악보를 원본의 절반 크기로 줄이기</td><td>X: 0, Y: 0, 배율: 50%</td></tr>
+            <tr><td class="key">악보를 원본보다 1.5배 크게 키우기</td><td>X: 0, Y: 0, 배율: 150%</td></tr>
+            <tr><td class="key">1페이지(제목 악보)만 작게, 나머지는 크게</td><td>분리 수정 모드 → 1페이지 배율 60%, 나머지 배율 100%</td></tr>
+          </tbody>
+        </table>
+
+        <div class="info-box orange" style="margin-top:10px;">
+          <span class="icon">⚠️</span>
+          <div><strong>악보 위치/배율 수정은 위치·크기만 변경합니다.</strong> 악보 이미지 자체는 교체되지 않습니다. 악보 이미지를 새 것으로 교체하려면 <strong>새로 만들기</strong> 탭에서 같은 번호로 악보 파일을 새로 만들어야 합니다.</div>
+        </div>
+      </div>
+
+      <!-- 12-8 폰트 색상 -->
+      <div class="sub-section">
+        <div class="sub-title">STEP 6 — 폰트 색상 변경 (선택)</div>
+        <p class="body-text">가사 텍스트의 색상을 변경합니다. 배경 이미지의 밝기에 맞게 대비가 잘 되는 색상을 선택하세요.</p>
+        <table class="guide-table">
+          <thead><tr><th>색상 버튼</th><th>설명</th><th>추천 상황</th></tr></thead>
+          <tbody>
+            <tr><td class="key">● 검은색</td><td>텍스트를 검은색으로 표시합니다.</td><td>흰색 또는 밝은 배경</td></tr>
+            <tr><td class="key">● 흰색</td><td>텍스트를 흰색으로 표시합니다.</td><td>어두운 배경 이미지</td></tr>
+            <tr><td class="key">● 노란색</td><td>텍스트를 노란색으로 표시합니다.</td><td>어두운 배경에서 강조 효과</td></tr>
+            <tr><td class="key">● 녹색</td><td>텍스트를 녹색으로 표시합니다.</td><td>어두운 배경에서 자연 느낌</td></tr>
+            <tr><td class="key">✕ 없음</td><td>색상을 변경하지 않고 기존 색상 그대로 유지합니다.</td><td><strong>(기본값)</strong></td></tr>
+          </tbody>
+        </table>
+        <div class="info-box blue" style="margin-top:8px;">
+          <span class="icon">💡</span>
+          <div>폰트 색상은 선택한 버튼이 파란 테두리로 강조 표시됩니다. 기본값은 <strong>✕ 없음</strong>으로, 기존 색상이 그대로 유지됩니다.</div>
+        </div>
+      </div>
+
+      <!-- 12-9 저장 -->
+      <div class="sub-section">
+        <div class="sub-title">STEP 7 — 수정 후 저장</div>
+        <p class="body-text">모든 수정이 끝나면 하단의 <strong>🔄 수정 후 저장</strong> 버튼(주황색)을 클릭합니다.</p>
+
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-content">
+              <div class="step-title">저장 폴더 확인</div>
+              <div class="step-desc">저장 버튼 위의 <strong>📁 저장 폴더</strong> 경로를 확인합니다. 기본값은 <code>C:\worshipPPT\praise\</code>입니다. 다른 폴더에 저장하려면 <strong>[📂 폴더 선택]</strong> 버튼으로 변경합니다. 특별한 이유가 없으면 기본 경로를 그대로 사용하세요.</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-content">
+              <div class="step-title">🔄 수정 후 저장 버튼 클릭</div>
+              <div class="step-desc">버튼을 클릭하면 잠시 처리가 진행된 후 완료 알림 창이 표시됩니다. 알림 창에는 번호·제목·저장 경로가 표시됩니다. 번호나 제목을 변경했다면 변경 전후가 함께 표시됩니다. <strong>[확인]</strong>을 클릭하면 저장이 완료됩니다.</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-content">
+              <div class="step-title">저장 완료 후 자동 초기화</div>
+              <div class="step-desc">저장이 완료되면 수정 패널이 자동으로 초기화되고 찬양 선택이 해제됩니다. 찬양 목록도 즉시 업데이트되어 변경 내용이 반영됩니다. 수정된 파일은 예배 중 검색창에서 바로 사용할 수 있습니다.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-box green">
+          <span class="icon">✅</span>
+          <div>저장 완료 후 찬양목록에 즉시 반영됩니다. 예배 중 검색창에서 번호를 입력하면 수정된 내용이 바로 적용된 슬라이드쇼가 열립니다.</div>
+        </div>
+      </div>
+
+      <!-- 12-10 상황별 수정 시나리오 -->
+      <div class="sub-section">
+        <div class="sub-title">상황별 수정 시나리오 완전 정리</div>
+
+        <p class="body-text" style="font-weight:700; color:#1B5E20; margin-bottom:6px;">🔤 시나리오 A — 가사 오타를 수정하고 싶어요</p>
+        <p class="body-text" style="color:#555; margin-bottom:6px;"><em>예시: "야곱의 축복" 2절에서 "예수 그리스도의 축복 임하네"가 "예수 그리스도의 죽복 임하네"로 잘못 입력된 경우</em></p>
+        <div class="steps" style="margin-bottom:20px;">
+          <div class="step"><div class="step-num">1</div><div class="step-content"><div class="step-title">목록에서 "야곱의 축복" 클릭</div><div class="step-desc">검색창에 "야곱"을 입력하면 빠르게 찾을 수 있습니다. 클릭하면 수정 패널이 열립니다.</div></div></div>
+          <div class="step"><div class="step-num">2</div><div class="step-content"><div class="step-title">슬라이드 내용 → [✏️ 내용 수정하기] 클릭</div><div class="step-desc">편집창이 열리고 기존 가사 전체가 입력창에 표시됩니다. "죽복"을 찾아 "축복"으로 수정합니다.</div></div></div>
+          <div class="step"><div class="step-num">3</div><div class="step-content"><div class="step-title">나머지는 그대로 두고 [🔄 수정 후 저장] 클릭</div><div class="step-desc">로고·배경·폰트 색상은 기본값(변경 없음)으로 두면 기존 상태가 그대로 유지됩니다. 저장 완료 알림이 뜨면 [확인]을 클릭합니다.</div></div></div>
+        </div>
+
+        <p class="body-text" style="font-weight:700; color:#1B5E20; margin-bottom:6px;">🖼️ 시나리오 B — 배경 이미지를 다른 것으로 교체하고 싶어요</p>
+        <p class="body-text" style="color:#555; margin-bottom:6px;"><em>예시: "주님의 은혜" 찬양의 배경을 기존 이미지에서 새 봄 이미지로 교체하는 경우</em></p>
+        <div class="steps" style="margin-bottom:20px;">
+          <div class="step"><div class="step-num">1</div><div class="step-content"><div class="step-title">목록에서 "주님의 은혜" 클릭</div><div class="step-desc">찬양을 선택하면 수정 패널이 열립니다.</div></div></div>
+          <div class="step"><div class="step-num">2</div><div class="step-content"><div class="step-title">배경 이미지 → [이미지 변경] 클릭 → 새 이미지 선택</div><div class="step-desc">탐색기에서 교체할 이미지(예: <code>봄배경.jpg</code>)를 선택합니다. 오른쪽에 썸네일 미리보기가 나타납니다. 이미지가 원하는 것이 맞는지 확인합니다.</div></div></div>
+          <div class="step"><div class="step-num">3</div><div class="step-content"><div class="step-title">슬라이드 내용·로고는 기본값으로 두고 [🔄 수정 후 저장] 클릭</div><div class="step-desc">가사·로고는 그대로 유지됩니다. 저장 후 찬양목록에서 해당 찬양을 실행하여 새 배경이 잘 적용됐는지 확인합니다.</div></div></div>
+        </div>
+
+        <p class="body-text" style="font-weight:700; color:#1B5E20; margin-bottom:6px;">🔢 시나리오 C — 번호를 바꾸고 싶어요 (예: 15번 → 3번)</p>
+        <p class="body-text" style="color:#555; margin-bottom:6px;"><em>예시: 자주 사용하는 "야곱의 축복"을 15번에서 빠른 검색을 위해 3번으로 변경하는 경우</em></p>
+        <div class="steps" style="margin-bottom:20px;">
+          <div class="step"><div class="step-num">1</div><div class="step-content"><div class="step-title">목록에서 15번 "야곱의 축복" 클릭</div><div class="step-desc">수정 패널이 열리면 녹색 카드에 "번호: 15, 제목: 야곱의 축복"이 표시됩니다.</div></div></div>
+          <div class="step"><div class="step-num">2</div><div class="step-content"><div class="step-title">번호 입력란의 값을 15 → 3으로 변경</div><div class="step-desc">3번이 이미 사용 중이라면 입력란 아래에 ⚠️ 경고가 표시됩니다. 기존 3번 파일을 덮어쓰게 되므로 주의하세요. 덮어쓰기를 원하지 않으면 다른 빈 번호를 사용하세요.</div></div></div>
+          <div class="step"><div class="step-num">3</div><div class="step-content"><div class="step-title">[🔄 수정 후 저장] 클릭</div><div class="step-desc">저장되면 <code>3_야곱의 축복.pptx</code>로 새 파일이 생기고 <code>15_야곱의 축복.pptx</code>는 자동으로 삭제됩니다. 이제 예배 중 <code>/3</code>으로 바로 호출할 수 있습니다.</div></div></div>
+        </div>
+
+        <p class="body-text" style="font-weight:700; color:#1B5E20; margin-bottom:6px;">🎵 시나리오 D — 악보가 너무 작게 나와요. 크게 하고 싶어요</p>
+        <p class="body-text" style="color:#555; margin-bottom:6px;"><em>예시: "주 하나님 지으신 모든 세계" 악보가 슬라이드의 절반 크기(50%)로만 표시되는 경우</em></p>
+        <div class="steps" style="margin-bottom:20px;">
+          <div class="step"><div class="step-num">1</div><div class="step-content"><div class="step-title">목록에서 해당 찬양 클릭</div><div class="step-desc">악보 파일이 선택되면 <strong>[📐 악보 위치 및 배율 수정하기]</strong> 버튼이 주황 테두리로 활성화됩니다.</div></div></div>
+          <div class="step"><div class="step-num">2</div><div class="step-content"><div class="step-title">버튼 클릭 → 현재 위치와 배율 확인</div><div class="step-desc">입력창 아래 회색 읽기 전용 란에 현재 값이 표시됩니다. 예: <code>X: 0 cm, Y: 0 cm, 배율: 50%</code>. 배율이 50%이므로 악보가 원본의 절반 크기입니다.</div></div></div>
+          <div class="step"><div class="step-num">3</div><div class="step-content"><div class="step-title">크기 배율 입력란에 100 입력</div><div class="step-desc">배율 입력란의 값을 50에서 100으로 변경합니다. X·Y는 0 그대로 두면 됩니다.</div></div></div>
+          <div class="step"><div class="step-num">4</div><div class="step-content"><div class="step-title">[🔄 수정 후 저장] 클릭</div><div class="step-desc">저장하면 모든 슬라이드의 악보가 원본 크기(100%)로 표시됩니다.</div></div></div>
+        </div>
+
+        <p class="body-text" style="font-weight:700; color:#1B5E20; margin-bottom:6px;">🎼 시나리오 E — 1페이지 악보는 작게, 나머지는 크게 하고 싶어요</p>
+        <p class="body-text" style="color:#555; margin-bottom:6px;"><em>예시: 1페이지에는 제목과 전주 악보(작게), 2페이지 이후에는 본 절 악보(크게)를 표시하고 싶은 경우</em></p>
+        <div class="steps" style="margin-bottom:20px;">
+          <div class="step"><div class="step-num">1</div><div class="step-content"><div class="step-title">해당 찬양 선택 → [📐 악보 위치 및 배율 수정하기] 클릭</div><div class="step-desc">위치/배율 입력 패널이 열립니다.</div></div></div>
+          <div class="step"><div class="step-num">2</div><div class="step-content"><div class="step-title">[📄 페이지 분리 수정] 클릭</div><div class="step-desc">두 개의 입력 영역이 열립니다: <strong>📄 1페이지</strong>와 <strong>📄 나머지 페이지(2페이지 이후 전체)</strong>.</div></div></div>
+          <div class="step"><div class="step-num">3</div><div class="step-content"><div class="step-title">1페이지: 배율 60%, 나머지: 배율 100% 입력 후 저장</div><div class="step-desc">1페이지 배율 입력란에 <code>60</code>, 나머지 페이지 배율 입력란에 <code>100</code>을 입력합니다. X·Y는 둘 다 0으로 두면 됩니다. 저장하면 1페이지만 60% 크기, 2페이지 이후는 100% 크기로 저장됩니다.</div></div></div>
+        </div>
+
+        <p class="body-text" style="font-weight:700; color:#1B5E20; margin-bottom:6px;">🎨 시나리오 F — 가사 색상이 배경에 묻혀 잘 안 보여요</p>
+        <p class="body-text" style="color:#555; margin-bottom:6px;"><em>예시: 어두운 배경 이미지를 새로 설정했는데 기존 검은색 가사가 잘 보이지 않는 경우</em></p>
+        <div class="steps" style="margin-bottom:20px;">
+          <div class="step"><div class="step-num">1</div><div class="step-content"><div class="step-title">해당 찬양 선택</div><div class="step-desc">수정 패널이 열리면 아래쪽의 폰트 색상 섹션을 확인합니다.</div></div></div>
+          <div class="step"><div class="step-num">2</div><div class="step-content"><div class="step-title">폰트 색상에서 [● 흰색] 클릭</div><div class="step-desc">흰색 버튼에 파란 테두리가 생기면 선택된 것입니다. 어두운 배경에는 흰색이 가장 잘 보입니다.</div></div></div>
+          <div class="step"><div class="step-num">3</div><div class="step-content"><div class="step-title">[🔄 수정 후 저장] 클릭</div><div class="step-desc">저장 후 찬양목록에서 해당 찬양을 실행하여 가사 색상이 배경과 잘 대비되는지 확인합니다.</div></div></div>
+        </div>
+
+      </div>
+
+      <!-- 12-11 미리보기로 결과 확인하기 -->
+      <div class="sub-section">
+        <div class="sub-title">수정 결과 확인하기 — 미리보기 사용법</div>
+
+        <p class="body-text">배경 이미지나 폰트 색상을 바꾼 경우, 저장 후 실제 슬라이드에서 결과를 눈으로 확인하는 것이 좋습니다. WorshipPPT에는 두 가지 미리보기 방법이 있습니다.</p>
+
+        <p class="body-text" style="font-weight:700; color:#1B5E20; margin-bottom:6px;">방법 ① 배경 이미지 썸네일 미리보기 (저장 전 확인)</p>
+        <p class="body-text">배경 이미지를 새로 선택하면 <strong>[이미지 변경]</strong> 버튼 오른쪽에 즉시 썸네일이 표시됩니다. 이 미리보기는 저장 전에 어떤 이미지가 선택됐는지 확인하는 용도입니다.</p>
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-content">
+              <div class="step-title">썸네일 확인</div>
+              <div class="step-desc">선택한 이미지가 150×94 픽셀 크기의 썸네일로 표시됩니다. 이미지 아래에 파일명이 함께 표시됩니다.</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-content">
+              <div class="step-title">다른 이미지로 바꾸려면</div>
+              <div class="step-desc">[이미지 변경] 버튼을 다시 클릭하여 다른 파일을 선택하면 썸네일이 즉시 교체됩니다.</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-content">
+              <div class="step-title">선택을 취소하려면</div>
+              <div class="step-desc">[✔ 기존 유지중] 버튼을 클릭하면 새로 선택한 이미지가 취소되고 기존 배경이 유지됩니다.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-box orange" style="margin-top:8px; margin-bottom:16px;">
+          <span class="icon">📌</span>
+          <div>썸네일 미리보기는 이미지 구성과 색감만 확인하는 도구입니다. 실제 슬라이드에서는 배경이 전체 화면 크기로 확대되어 표시되기 때문에 최종 결과는 저장 후 슬라이드쇼에서 확인하는 것이 정확합니다.</div>
+        </div>
+
+        <p class="body-text" style="font-weight:700; color:#1B5E20; margin-bottom:6px;">방법 ② 찬양목록에서 슬라이드쇼 실행 (저장 후 확인)</p>
+        <p class="body-text">저장이 완료된 후, 메인 메뉴의 <strong>🎵 찬양목록</strong>에서 해당 찬양을 클릭하면 실제 PowerPoint 슬라이드쇼가 바로 실행됩니다. 이것이 가장 정확한 최종 확인 방법입니다.</p>
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-content">
+              <div class="step-title">저장 완료 알림에서 [확인] 클릭</div>
+              <div class="step-desc">수정 후 저장이 완료되면 알림 창이 표시됩니다. [확인]을 누르면 패널이 초기화됩니다.</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-content">
+              <div class="step-title">메인 메뉴 → 🎵 찬양목록 진입</div>
+              <div class="step-desc">메인 메뉴로 돌아가 <strong>🎵 찬양목록</strong> 카드를 클릭합니다.</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-content">
+              <div class="step-title">수정한 찬양 행 클릭 → 슬라이드쇼 실행</div>
+              <div class="step-desc">찬양목록에서 수정한 찬양 행을 클릭하면 PowerPoint 슬라이드쇼가 즉시 실행됩니다. 배경 이미지·가사·폰트 색상 등 모든 수정 내용이 실제 슬라이드에 어떻게 표시되는지 확인할 수 있습니다. ESC 키를 누르면 슬라이드쇼가 종료됩니다.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-box green" style="margin-top:8px;">
+          <span class="icon">✅</span>
+          <div><strong>실제 슬라이드쇼 미리보기 순서 요약:</strong> 기존 찬양 수정 → 수정 후 저장 → 찬양목록 → 해당 찬양 클릭 → 슬라이드쇼 확인 → ESC로 종료. 이 순서로 확인하면 예배 당일 전에 미리 결과를 점검할 수 있습니다.</div>
+        </div>
+      </div>
+
+      <!-- 12-12 주의사항 -->
+      <div class="sub-section">
+        <div class="sub-title">수정 시 주의사항</div>
+        <div class="info-box red">
+          <span class="icon">⚠️</span>
+          <div><strong>외부 PPT 파일 가사 수정:</strong> 이 프로그램으로 만들지 않은 외부 PPT 파일은 가사 자동 인식이 되지 않을 수 있습니다. 이 경우 <strong>새로 만들기</strong> 탭에서 같은 번호로 새 파일을 만들어 가사를 직접 입력하거나, PowerPoint에서 직접 편집하세요.</div>
+        </div>
+        <div class="info-box orange" style="margin-top:8px;">
+          <span class="icon">📌</span>
+          <div><strong>악보 위치 수정은 위치·크기만 변경:</strong> 악보 이미지 자체를 바꾸고 싶으면 새로 만들기 탭에서 같은 번호로 악보 파일을 새로 생성해야 합니다. 위치/배율 수정만으로는 이미지가 교체되지 않습니다.</div>
+        </div>
+        <div class="info-box blue" style="margin-top:8px;">
+          <span class="icon">💡</span>
+          <div><strong>실수로 잘못 저장했을 때:</strong> 프로그램 내 되돌리기(Undo) 기능은 없습니다. 중요한 파일은 수정 전에 탐색기에서 미리 복사(백업)해 두는 것을 권장합니다. 경로: <code>C:\worshipPPT\praise\</code></div>
+        </div>
+        <div class="info-box red" style="margin-top:8px;">
+          <span class="icon">🔒</span>
+          <div><strong>번호 덮어쓰기 주의:</strong> 번호를 변경할 때 이미 사용 중인 번호를 입력하면 기존 파일이 삭제됩니다. 저장 전에 반드시 번호 중복 여부(⚠️ 표시)를 확인하세요.</div>
+        </div>
+      </div>
+
+    </div><!-- /ch12 -->
+
+
+    <!-- ══ FAQ ══ -->
+    <div class="section" id="ch13">
+      <div class="section-header">
+        <div class="section-num">?</div>
+        <div class="section-title">자주 묻는 질문 <small>FAQ</small></div>
+      </div>
+
+      <details class="faq-item">
+        <summary class="faq-q"><span class="faq-badge">오류</span>프로그램이 실행되지 않아요.<span class="faq-arrow">▼</span></summary>
+        <div class="faq-a">
+          다음을 순서대로 확인하세요.<br>
+          ① Microsoft PowerPoint가 설치되어 있는지 확인하세요. PowerPoint가 없으면 실행되지 않습니다.<br>
+          ② WebView2 Runtime이 설치되어 있는지 확인하세요. 설치 파일에 포함되어 있으나 오류 시 Microsoft 공식 사이트에서 별도 설치할 수 있습니다.<br>
+          ③ 오류 메시지가 있다면 내용을 메모하여 관리자에게 문의하세요.
+        </div>
+      </details>
+
+      <details class="faq-item">
+        <summary class="faq-q"><span class="faq-badge">오류</span>'파일을 찾을 수 없습니다' 오류가 나와요.<span class="faq-arrow">▼</span></summary>
+        <div class="faq-a">다운로드 폴더에 <code>worshippt.ppt</code>, <code>성경.ppt</code>, <code>광고.ppt</code> 파일이 있는지 확인하세요. 없다면 템플릿 파일을 다운로드 폴더(<code>C:\Users\사용자이름\Downloads</code>)에 복사해 주세요.</div>
+      </details>
+
+      <details class="faq-item">
+        <summary class="faq-q"><span class="faq-badge">사용</span>찬송가를 클릭했는데 아무것도 열리지 않아요.<span class="faq-arrow">▼</span></summary>
+        <div class="faq-a">데이터 폴더의 <code>hymn\</code> 폴더에 해당 번호의 PPT 파일이 있는지 확인하세요. 파일명은 <code>번호.ppt</code> 형식이어야 합니다. 예) <code>23.ppt</code></div>
+      </details>
+
+      <details class="faq-item">
+        <summary class="faq-q"><span class="faq-badge">입력</span>성경 본문 형식이 어떻게 되나요?<span class="faq-arrow">▼</span></summary>
+        <div class="faq-a">
+          책 약자 + 장:시작절~끝절 형식으로 입력합니다.<br>
+          예) <code>요 3:16~17</code> &nbsp;|&nbsp; <code>창 1:1</code> &nbsp;|&nbsp; <code>시 23:1~6</code><br>
+          장만 입력하려면: <code>요 3</code><br>
+          여러 본문: <code>요 3:16,롬 8:1</code> (쉼표로 구분, 최대 4개)
+        </div>
+      </details>
+
+      <details class="faq-item">
+        <summary class="faq-q"><span class="faq-badge">사용</span>예배순서를 잘못 만들었어요. 다시 만들 수 있나요?<span class="faq-arrow">▼</span></summary>
+        <div class="faq-a">입력 탭에서 해당 예배순서를 선택한 뒤 [현재 순서 삭제] 버튼으로 삭제하고, 예배순서 만들기 탭에서 새로 만들면 됩니다.</div>
+      </details>
+
+      <details class="faq-item">
+        <summary class="faq-q"><span class="faq-badge">라이선스</span>PC를 새로 샀는데 라이선스 인증이 안 돼요.<span class="faq-arrow">▼</span></summary>
+        <div class="faq-a">라이선스 키는 1대의 PC에만 등록됩니다.</div>
+      </details>
+
+      <details class="faq-item">
+        <summary class="faq-q"><span class="faq-badge">사용</span>광고가 너무 많아서 한 슬라이드에 안 들어가요.<span class="faq-arrow">▼</span></summary>
+        <div class="faq-a">광고 내용이 많으면 자동으로 여러 슬라이드로 분할됩니다. 예배 시작 후 슬라이드쇼에서 클릭하거나 방향키로 다음 슬라이드로 이동하면 됩니다.</div>
+      </details>
+
+      <details class="faq-item">
+        <summary class="faq-q"><span class="faq-badge">사용</span>찬양 PPT를 추가하려면 어떻게 하나요?<span class="faq-arrow">▼</span></summary>
+        <div class="faq-a">
+          두 가지 방법이 있습니다.<br>
+          ① <strong>찬양 PPT 만들기</strong> 메뉴에서 제목·가사·배경을 입력하고 파일명을 숫자_제목(<code>1_제목.pptX</code>, <code>68_제목.pptX</code> 등)로 저장하면 찬양목록에 자동 등록됩니다.<br>
+          ② <strong>찬양 PPT 만들기</strong> 메뉴에서 빈 슬라이드를 만들면 검색과 하단의 페이지 자동가기 기능이 탑재된 빈 슬라이드를 얻을 수 있습니다. 이 슬라이드를 이용하여 악보가 있는 그림을 옮겨넣기로 작업하시면 모든 기능이 활성화된 찬양 PPT를 만들 수 있습니다.
+        </div>
+      </details>
+
+      <details class="faq-item">
+        <summary class="faq-q"><span class="faq-badge">설정</span>검색로고는 어떻게 바꾸나요? <span class="faq-arrow">▼</span></summary>
+        <div class="faq-a">예배순서 입력 탭 상단의 <strong>🏷️ 검색로고 선택</strong> 영역에서 두 가지 로고 중 하나를 클릭하여 선택합니다. 어두운 배경에는 검색로고1(밝은 색), 밝은 배경에는 검색로고2(어두운 색)를 권장합니다. 선택 후 PPT를 재생성하면 적용됩니다. <strong>*개 교회의 로고를 원하시는 경우 별도의 추가 비용이 발생합니다.</strong></div>
+      </details>
+
+      <details class="faq-item">
+        <summary class="faq-q"><span class="faq-badge">오류</span>인터넷이 없을 때 프로그램이 실행되지 않아요.<span class="faq-arrow">▼</span></summary>
+        <div class="faq-a">인터넷이 없어도 정상적으로 실행됩니다. 라이선스 인증 정보가 레지스트리에 저장되어 있어 오프라인에서도 사용할 수 있습니다. 다만 최초 인증은 인터넷 연결이 필요합니다.</div>
+      </details>
+    </div>
+
+    <!-- 푸터 -->
+    <div style="margin-top:72px; padding:32px; background: var(--green); border-radius:16px; text-align:center;">
+      <div style="font-size:28px; margin-bottom:8px;">⛪</div>
+      <div style="font-size:17px; font-weight:700; color:#fff; margin-bottom:6px;">예배PPT 관리 시스템</div>
+      <div style="font-size:13px; color:rgba(255,255,255,0.6);">DREAM SW - 더 나은 예배 준비를 위해 함께합니다.  <strong>dream@gmail.com</a></strong></a></a></div>
+    </div>
+
+  </div><!-- /content -->
+</main>
