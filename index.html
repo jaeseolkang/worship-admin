@@ -12,10 +12,12 @@
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script>
   (function(){ emailjs.init({ publicKey: 'iUzaDFriDmi6NHDJw' }); })();
-  const EMAILJS_SERVICE_ID  = 'service_ko9yjli';
-  const EMAILJS_TEMPLATE_ID = 'template_b8ga97o';
-  const WORSHIP_GUIDE_URL   = 'https://jaeseolkang.github.io/worship-admin/WorshipPPT_User_Guide.html';
-  const DOWNLOAD_URL        = 'https://drive.google.com/drive/folders/1zXBlmnw7pmfKPn1aBcl02uxTrfiww7K8?usp=sharing';
+  const EMAILJS_SERVICE_ID         = 'service_ko9yjli';
+  const EMAILJS_TEMPLATE_TRIAL     = 'template_b8ga97o';   // 기한부용
+  const EMAILJS_TEMPLATE_PERMANENT = 'template_gvfmq1a';   // 영구용
+  const WORSHIP_GUIDE_URL          = 'https://jaeseolkang.github.io/worship-admin/WorshipPPT_User_Guide.html';
+  const DOWNLOAD_URL_TRIAL         = 'https://drive.google.com/drive/folders/1zXBlmnw7pmfKPn1aBcl02uxTrfiww7K8?usp=sharing';
+  const DOWNLOAD_URL_PERMANENT     = 'https://drive.google.com/drive/folders/1O_K1lkESKKs1EzpTf6P_ISdOpWnlbW1X?usp=sharing';
 </script>
 
 <style>
@@ -750,14 +752,15 @@ async function resendMail(key, email, d) {
   const resultEl = document.getElementById('mailResult_' + key.replace(/-/g,''));
   if (resultEl) { resultEl.textContent = '📧 발송 중...'; resultEl.style.display = 'block'; resultEl.style.color = '#1565C0'; }
   try {
-    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+    const isPerm_r = licTypeOf(d) === 'permanent';
+    await emailjs.send(EMAILJS_SERVICE_ID, isPerm_r ? EMAILJS_TEMPLATE_PERMANENT : EMAILJS_TEMPLATE_TRIAL, {
       to_email:     email,
       buyer_name:   d.buyerName || email,
       license_key:  key,
-      license_type: licTypeOf(d) === 'permanent' ? '영구' : '기한부',
+      license_type: isPerm_r ? '영구' : '기한부',
       expires_at:   d.expiresAt ? new Date(d.expiresAt).toLocaleDateString('ko-KR') : '무제한',
       guide_url:    WORSHIP_GUIDE_URL,
-      download_url: DOWNLOAD_URL
+      download_url: isPerm_r ? DOWNLOAD_URL_PERMANENT : DOWNLOAD_URL_TRIAL
     });
     if (resultEl) { resultEl.textContent = `✅ ${email} 발송 완료`; resultEl.style.color = '#2C5F2D'; }
   } catch(err) {
@@ -840,14 +843,15 @@ async function issueKey() {
       mailResultEl.style.display = 'block';
       mailResultEl.style.color = '#1565C0';
       try {
-        await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+        const isPerm_i = licenseType === 'permanent';
+        await emailjs.send(EMAILJS_SERVICE_ID, isPerm_i ? EMAILJS_TEMPLATE_PERMANENT : EMAILJS_TEMPLATE_TRIAL, {
           to_email:     email,
           buyer_name:   name || email,
           license_key:  key,
-          license_type: licenseType === 'permanent' ? '영구' : '기한부',
+          license_type: isPerm_i ? '영구' : '기한부',
           expires_at:   expiresAt ? new Date(expiresAt).toLocaleDateString('ko-KR') : '무제한',
           guide_url:    WORSHIP_GUIDE_URL,
-          download_url: DOWNLOAD_URL
+          download_url: isPerm_i ? DOWNLOAD_URL_PERMANENT : DOWNLOAD_URL_TRIAL
         });
         mailResultEl.textContent = `✅ ${email} 으로 메일 발송 완료`;
         mailResultEl.style.color = '#2C5F2D';
