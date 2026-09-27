@@ -13,11 +13,10 @@
 <script>
   (function(){ emailjs.init({ publicKey: 'iUzaDFriDmi6NHDJw' }); })();
   const EMAILJS_SERVICE_ID         = 'service_ko9yjli';
-  const EMAILJS_TEMPLATE_TRIAL     = 'template_b8ga97o';   // 기한부용
-  const EMAILJS_TEMPLATE_PERMANENT = 'template_gvfmq1a';   // 영구용
+  const EMAILJS_TEMPLATE            = 'template_gvfmq1a';   // 라이선스 발급용 (기존 영구용 템플릿을 공용으로 사용)
   const WORSHIP_GUIDE_URL          = 'https://jaeseolkang.github.io/worship-admin/WorshipPPT_User_Guide.html';
-  const DOWNLOAD_URL_TRIAL         = 'https://drive.google.com/drive/folders/1zXBlmnw7pmfKPn1aBcl02uxTrfiww7K8?usp=sharing';
-  const DOWNLOAD_URL_PERMANENT     = 'https://drive.google.com/drive/folders/1O_K1lkESKKs1EzpTf6P_ISdOpWnlbW1X?usp=sharing';
+  // 다운로드 링크는 하나로 통일 (기한부/영구 공통)
+  const DOWNLOAD_URL = 'https://drive.google.com/drive/folders/1zXBlmnw7pmfKPn1aBcl02uxTrfiww7K8?usp=sharing';
 </script>
 
 <style>
@@ -181,24 +180,6 @@ input:focus { outline: none; border-color: var(--green); background: white; }
 .form-label { font-size: 0.8em; font-weight: 700; color: var(--gray600); padding-left: 2px; }
 .form-label .req { color: var(--red); margin-left: 2px; }
 
-/* ── 라이선스 종류 토글 ── */
-.type-toggle { display: flex; gap: 8px; }
-.type-btn {
-  flex: 1; padding: 11px 8px;
-  border: 2px solid var(--gray200);
-  border-radius: 10px;
-  background: #fafafa;
-  color: #999;
-  font-family: inherit; font-size: 0.88em; font-weight: 700;
-  cursor: pointer; text-align: center;
-  transition: all 0.2s;
-  appearance: none; -webkit-appearance: none;
-  line-height: 1.4;
-}
-.type-btn .type-icon { display: block; font-size: 1.3em; margin-bottom: 3px; }
-.type-btn.active-perm  { border-color: var(--green); background: var(--green-lt); color: var(--green); }
-.type-btn.active-trial { border-color: var(--orange); background: var(--orange-lt); color: var(--orange); }
-
 /* 만료일 미리보기 */
 #expiresPreview {
   display: none;
@@ -289,7 +270,6 @@ input:focus { outline: none; border-color: var(--green); background: white; }
   border-left: 4px solid var(--green);
 }
 .lic-card.active-card  { border-color: #4CAF50; background: #f1f8f1; }
-.lic-card.trial-card   { border-left-color: var(--orange); }
 .lic-card.expired-card { border-left-color: var(--red); background: #fff8f8; }
 
 .lic-card-header {
@@ -311,7 +291,6 @@ input:focus { outline: none; border-color: var(--green); background: white; }
 .badge-active   { background: var(--green-lt); color: var(--green); }
 .badge-inactive { background: var(--gray100);  color: #888; }
 .badge-perm     { background: var(--blue-lt);  color: var(--blue); }
-.badge-trial    { background: var(--orange-lt);color: var(--orange); }
 .badge-expired  { background: var(--red-lt);   color: var(--red); }
 
 .lic-info { font-size: 0.82em; color: var(--gray600); margin-bottom: 3px; }
@@ -387,8 +366,6 @@ input:focus { outline: none; border-color: var(--green); background: white; }
       <div class="stat-item"><div class="num" id="statTotal">-</div><div class="lbl">전체</div></div>
       <div class="stat-item"><div class="num num-blue" id="statActive">-</div><div class="lbl">활성</div></div>
       <div class="stat-item"><div class="num num-gray" id="statInactive">-</div><div class="lbl">미사용</div></div>
-      <div class="stat-item"><div class="num" id="statPerm">-</div><div class="lbl">영구</div></div>
-      <div class="stat-item"><div class="num num-orange" id="statTrial">-</div><div class="lbl">기한부</div></div>
       <div class="stat-item"><div class="num num-red" id="statExpired">-</div><div class="lbl">만료</div></div>
     </div>
 
@@ -403,8 +380,6 @@ input:focus { outline: none; border-color: var(--green); background: white; }
         <button class="filter-btn on" id="filterAll"     onclick="setFilter('all')">전체</button>
         <button class="filter-btn"    id="filterActive"  onclick="setFilter('active')">✅ 활성</button>
         <button class="filter-btn"    id="filterInact"   onclick="setFilter('inactive')">⬜ 미사용</button>
-        <button class="filter-btn"    id="filterPerm"    onclick="setFilter('perm')">♾️ 영구</button>
-        <button class="filter-btn"    id="filterTrial"   onclick="setFilter('trial')">⏳ 기한부</button>
         <button class="filter-btn"    id="filterExpired" onclick="setFilter('expired')">❌ 만료</button>
         <button id="refreshBtn" onclick="loadLicenses()" title="새로고침">🔄</button>
       </div>
@@ -435,22 +410,6 @@ input:focus { outline: none; border-color: var(--green); background: white; }
           <div class="form-label">전화번호</div>
           <input type="tel" id="newPhone" placeholder="010-0000-0000"
                  maxlength="13" oninput="formatPhone(this)">
-        </div>
-
-        <div class="form-group">
-          <div class="form-label">라이선스 종류 <span class="req">*</span></div>
-          <div class="type-toggle">
-            <button type="button" class="type-btn active-perm" id="btnPerm" onclick="setLicType('permanent')">
-              <span class="type-icon">♾️</span>영구 라이선스
-            </button>
-            <button type="button" class="type-btn" id="btnTrial" onclick="setLicType('trial')">
-              <span class="type-icon">⏳</span>기한부 (10일)
-            </button>
-          </div>
-        </div>
-
-        <div id="expiresPreview">
-          📅 발행 즉시 만료일 설정: <span id="expiresDate"></span>
         </div>
 
         <div class="msg" id="issueMsg"></div>
@@ -490,7 +449,6 @@ try {
 const ADMIN_PASSWORD = 'Jlozh990604$';
 let allLicenses   = [];
 let currentFilter = 'all';
-let licenseType   = 'permanent';
 
 // ── 로그인 / 로그아웃 ───────────────────────────────────────
 function login() {
@@ -535,32 +493,13 @@ function setFilter(f) {
     all:     { id:'filterAll',     cls:'on' },
     active:  { id:'filterActive',  cls:'on' },
     inactive:{ id:'filterInact',   cls:'on' },
-    perm:    { id:'filterPerm',    cls:'on' },
-    trial:   { id:'filterTrial',   cls:'on-orange' },
     expired: { id:'filterExpired', cls:'on-red' }
   };
-  ['filterAll','filterActive','filterInact','filterPerm','filterTrial','filterExpired']
+  ['filterAll','filterActive','filterInact','filterExpired']
     .forEach(id => document.getElementById(id).className = 'filter-btn');
   const t = map[f];
   if (t) document.getElementById(t.id).className = 'filter-btn ' + t.cls;
   renderList();
-}
-
-// ── 라이선스 종류 토글 ─────────────────────────────────────
-function setLicType(type) {
-  licenseType = type;
-  document.getElementById('btnPerm').className  = 'type-btn' + (type === 'permanent' ? ' active-perm'  : '');
-  document.getElementById('btnTrial').className = 'type-btn' + (type === 'trial'     ? ' active-trial' : '');
-  const preview = document.getElementById('expiresPreview');
-  const dateEl  = document.getElementById('expiresDate');
-  if (type === 'trial') {
-    const exp = new Date();
-    exp.setDate(exp.getDate() + 10);
-    dateEl.textContent = exp.toLocaleDateString('ko-KR', {year:'numeric', month:'long', day:'numeric'});
-    preview.classList.add('show');
-  } else {
-    preview.classList.remove('show');
-  }
 }
 
 // ── 전화번호 자동 포맷 ─────────────────────────────────────
@@ -577,9 +516,6 @@ function isSoonExpire(d) {
   if (!d.expiresAt) return false;
   const diff = new Date(d.expiresAt) - new Date();
   return diff > 0 && diff < 2 * 24 * 60 * 60 * 1000;
-}
-function licTypeOf(d) {
-  return d.licenseType || (d.expiresAt ? 'trial' : 'permanent');
 }
 
 // ── 랜덤 키 생성 ───────────────────────────────────────────
@@ -609,14 +545,10 @@ async function loadLicenses() {
 function updateStats() {
   const total   = allLicenses.length;
   const active  = allLicenses.filter(d => d.activated === true || d.activated === 'true').length;
-  const perm    = allLicenses.filter(d => licTypeOf(d) === 'permanent').length;
-  const trial   = allLicenses.filter(d => licTypeOf(d) === 'trial').length;
   const expired = allLicenses.filter(d => isExpired(d)).length;
   document.getElementById('statTotal').textContent    = total;
   document.getElementById('statActive').textContent   = active;
   document.getElementById('statInactive').textContent = total - active;
-  document.getElementById('statPerm').textContent     = perm;
-  document.getElementById('statTrial').textContent    = trial;
   document.getElementById('statExpired').textContent  = expired;
 }
 
@@ -626,8 +558,6 @@ function renderList() {
   let list  = [...allLicenses];
   if (currentFilter === 'active')   list = list.filter(d => (d.activated === true || d.activated === 'true'));
   if (currentFilter === 'inactive') list = list.filter(d => !(d.activated === true || d.activated === 'true'));
-  if (currentFilter === 'perm')     list = list.filter(d => licTypeOf(d) === 'permanent');
-  if (currentFilter === 'trial')    list = list.filter(d => licTypeOf(d) === 'trial');
   if (currentFilter === 'expired')  list = list.filter(d => isExpired(d));
   if (q) list = list.filter(d =>
     d.id.toLowerCase().includes(q) ||
@@ -649,7 +579,6 @@ function renderList() {
   list.forEach(d => {
     const key          = d.id;
     const isActive     = d.activated === true || d.activated === 'true';
-    const type         = licTypeOf(d);
     const expired      = isExpired(d);
     const soon         = isSoonExpire(d);
     const activatedAt  = d.activatedAt ? d.activatedAt.substring(0,19).replace('T',' ') : '-';
@@ -658,12 +587,10 @@ function renderList() {
     let cardClass = 'lic-card';
     if (expired)       cardClass += ' expired-card';
     else if (isActive) cardClass += ' active-card';
-    cardClass += type === 'trial' ? ' trial-card' : '';
 
-    let typeBadge = '';
-    if (expired)             typeBadge = '<span class="badge badge-expired">❌ 만료됨</span>';
-    else if (type === 'trial') typeBadge = '<span class="badge badge-trial">⏳ 기한부</span>';
-    else                     typeBadge = '<span class="badge badge-perm">♾️ 영구</span>';
+    let typeBadge = expired
+      ? '<span class="badge badge-expired">❌ 만료됨</span>'
+      : '<span class="badge badge-perm">🔑 라이선스</span>';
 
     const actBadge = isActive
       ? '<span class="badge badge-active">✅ 활성</span>'
@@ -752,15 +679,14 @@ async function resendMail(key, email, d) {
   const resultEl = document.getElementById('mailResult_' + key.replace(/-/g,''));
   if (resultEl) { resultEl.textContent = '📧 발송 중...'; resultEl.style.display = 'block'; resultEl.style.color = '#1565C0'; }
   try {
-    const isPerm_r = licTypeOf(d) === 'permanent';
-    await emailjs.send(EMAILJS_SERVICE_ID, isPerm_r ? EMAILJS_TEMPLATE_PERMANENT : EMAILJS_TEMPLATE_TRIAL, {
+    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE, {
       to_email:     email,
       buyer_name:   d.buyerName || email,
       license_key:  key,
-      license_type: isPerm_r ? '영구' : '기한부',
-      expires_at:   d.expiresAt ? new Date(d.expiresAt).toLocaleDateString('ko-KR') : '무제한',
+      license_type: '라이선스',
+      expires_at:   '무제한',
       guide_url:    WORSHIP_GUIDE_URL,
-      download_url: isPerm_r ? DOWNLOAD_URL_PERMANENT : DOWNLOAD_URL_TRIAL
+      download_url: DOWNLOAD_URL
     });
     if (resultEl) { resultEl.textContent = `✅ ${email} 발송 완료`; resultEl.style.color = '#2C5F2D'; }
   } catch(err) {
@@ -808,15 +734,11 @@ async function issueKey() {
   mailResultEl.style.display = 'none';
 
   const key       = makeRandomKey();
-  const expiresAt = licenseType === 'trial'
-    ? (() => { const d = new Date(); d.setDate(d.getDate() + 10); return d.toISOString(); })()
-    : null;
 
   const docData = {
     activated: false, machineId: '', activatedAt: '',
     email, buyerName: name, buyerPhone: phone,
-    licenseType, createdAt: new Date().toISOString(),
-    ...(expiresAt ? { expiresAt } : {})
+    createdAt: new Date().toISOString()
   };
 
   try {
@@ -828,10 +750,7 @@ async function issueKey() {
     document.getElementById('newEmail').value = '';
     document.getElementById('newPhone').value = '';
 
-    const expStr = expiresAt
-      ? `만료일: ${new Date(expiresAt).toLocaleDateString('ko-KR')}`
-      : '영구 라이선스';
-    msg.textContent = `✅ 발급 완료! (${expStr})`;
+    msg.textContent = `✅ 발급 완료!`;
     msg.className = 'msg ok';
 
     allLicenses.unshift({ id: key, ...docData });
@@ -843,15 +762,14 @@ async function issueKey() {
       mailResultEl.style.display = 'block';
       mailResultEl.style.color = '#1565C0';
       try {
-        const isPerm_i = licenseType === 'permanent';
-        await emailjs.send(EMAILJS_SERVICE_ID, isPerm_i ? EMAILJS_TEMPLATE_PERMANENT : EMAILJS_TEMPLATE_TRIAL, {
+        await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE, {
           to_email:     email,
           buyer_name:   name || email,
           license_key:  key,
-          license_type: isPerm_i ? '영구' : '기한부',
-          expires_at:   expiresAt ? new Date(expiresAt).toLocaleDateString('ko-KR') : '무제한',
+          license_type: '라이선스',
+          expires_at:   '무제한',
           guide_url:    WORSHIP_GUIDE_URL,
-          download_url: isPerm_i ? DOWNLOAD_URL_PERMANENT : DOWNLOAD_URL_TRIAL
+          download_url: DOWNLOAD_URL
         });
         mailResultEl.textContent = `✅ ${email} 으로 메일 발송 완료`;
         mailResultEl.style.color = '#2C5F2D';
