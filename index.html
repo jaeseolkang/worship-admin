@@ -330,10 +330,12 @@ input:focus { outline: none; border-color: var(--green); background: white; }
 }
 /* ── 신청자 탭 ── */
 input[type="date"] {
-  width: 100%; padding: 11px 14px;
+  width: 100%; min-width: 0; max-width: 100%; padding: 11px 14px;
   border: 2px solid var(--gray200); border-radius: 10px;
   font-size: 0.95em; font-family: inherit; background: #fafafa;
+  -webkit-appearance: none; appearance: none; text-align: left; min-height: 46px;
 }
+.form-row > * { min-width: 0; }
 .chk-row { display: flex; align-items: center; gap: 8px; font-size: 0.85em; color: var(--gray600); font-weight: 600; cursor: pointer; }
 .chk-row input { width: auto; }
 .btn-row { display: flex; gap: 8px; }
