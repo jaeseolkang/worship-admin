@@ -8,6 +8,7 @@
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <!-- EmailJS SDK -->
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script>
@@ -524,11 +525,26 @@ let allLicenses   = [];
 let currentFilter = 'all';
 
 // ── 로그인 / 로그아웃 ───────────────────────────────────────
-function login() {
+// Firebase 관리자 계정 (Authentication > 사용자). 신청자 기록은 이 계정으로 로그인해야 읽고 쓸 수 있음
+const ADMIN_EMAIL = 'drimsw@gmail.com';
+
+async function login() {
   const pw  = document.getElementById('pwInput').value.trim();
   const msg = document.getElementById('loginMsg');
   if (!db) { msg.textContent = '❌ Firebase 로딩 중입니다. 잠시 후 다시 시도해주세요.'; msg.className = 'msg error'; return; }
-  if (pw === ADMIN_PASSWORD) {
+  if (!pw) { msg.textContent = '❌ 비밀번호를 입력하세요.'; msg.className = 'msg error'; return; }
+  msg.textContent = '⏳ 확인 중...'; msg.className = 'msg info';
+
+  // ① Firebase 관리자 계정으로 로그인 (성공하면 신청자 기록까지 모두 사용 가능)
+  let fbOk = false;
+  try {
+    try { await firebase.auth().setPersistence(firebase.auth.Auth.Persistence.SESSION); } catch (e) {}   // 브라우저를 닫으면 로그인 해제
+    await firebase.auth().signInWithEmailAndPassword(ADMIN_EMAIL, pw);
+    fbOk = true;
+  } catch (e) { /* 계정이 아직 없거나 비밀번호가 다름 → ② 기존 비밀번호 확인 */ }
+
+  // ② 기존 방식 비밀번호 (Firebase 계정을 만든 뒤에는 ADMIN_PASSWORD 를 '' 로 비워 두세요)
+  if (fbOk || (ADMIN_PASSWORD && pw === ADMIN_PASSWORD)) {
     msg.textContent = '';
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('mainScreen').style.display  = 'block';
@@ -549,6 +565,8 @@ function logout() {
   document.getElementById('pwInput').value = '';
   document.getElementById('loginMsg').textContent = '';
   allLicenses = [];
+  allApplicants = [];
+  try { firebase.auth().signOut(); } catch (e) {}
 }
 
 // ── 탭 전환 ────────────────────────────────────────────────
@@ -888,8 +906,10 @@ let appBusy = false;
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
 const todayStr = () => new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
 const appErr = e => (e && e.code === 'permission-denied')
-  ? 'Firestore 규칙에서 applicants 컬렉션이 허용되어 있지 않습니다 (Firebase 콘솔 > Firestore > 규칙)'
+  ? '접근이 거부되었습니다. Firebase 관리자 계정으로 로그인했는지, Firestore 규칙(applicants)이 맞는지 확인하세요'
   : ((e && e.message) || e);
+const APP_NEED_LOGIN = '🔒 신청자 기록은 Firebase 관리자 계정으로 로그인해야 볼 수 있습니다. 로그아웃 후 관리자 계정 비밀번호로 다시 로그인하세요.';
+const appSignedIn = () => { try { return !!firebase.auth().currentUser; } catch (e) { return false; } };
 
 function openApplicantTab() {
   if (!document.getElementById('apDate').value) document.getElementById('apDate').value = todayStr();
@@ -905,6 +925,12 @@ function setAppFilter(f) {
 }
 
 async function loadApplicants() {
+  if (!appSignedIn()) {
+    allApplicants = []; updateAppStats();
+    document.getElementById('appList').innerHTML = '';
+    document.getElementById('appListMsg').textContent = APP_NEED_LOGIN;
+    return;
+  }
   document.getElementById('appListMsg').textContent = '🔄 불러오는 중...';
   try {
     const snap = await db.collection('applicants').orderBy('createdAt', 'desc').get()
@@ -978,6 +1004,7 @@ async function addApplicant(sendNow) {
   const consent = document.getElementById('apConsent').checked;
   const msg     = document.getElementById('apMsg');
 
+  if (!appSignedIn()) { msg.textContent = APP_NEED_LOGIN; msg.className = 'msg error'; return; }
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
     msg.textContent = '❌ 올바른 이메일을 입력해주세요.'; msg.className = 'msg error'; return;
   }
