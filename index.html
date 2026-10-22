@@ -17,6 +17,8 @@
   const WORSHIP_GUIDE_URL          = 'https://jaeseolkang.github.io/worship-admin/WorshipPPT_User_Guide.html';
   // 다운로드 링크는 하나로 통일 (기한부/영구 공통)
   const DOWNLOAD_URL = 'https://drive.google.com/drive/folders/1zXBlmnw7pmfKPn1aBcl02uxTrfiww7K8?usp=sharing';
+  // 신청자(Lite) 링크 안내용 EmailJS 템플릿 ID (라이선스 키 없음). 비워 두면 메일 작성창(mailto)이 열립니다.
+  const EMAILJS_TEMPLATE_LITE      = 'template_b8ga97o';
 </script>
 
 <style>
@@ -326,6 +328,21 @@ input:focus { outline: none; border-color: var(--green); background: white; }
   background: none; border: none; font-size: 1.1em;
   cursor: pointer; color: var(--green); padding: 4px 6px;
 }
+/* ── 신청자 탭 ── */
+input[type="date"] {
+  width: 100%; padding: 11px 14px;
+  border: 2px solid var(--gray200); border-radius: 10px;
+  font-size: 0.95em; font-family: inherit; background: #fafafa;
+}
+.chk-row { display: flex; align-items: center; gap: 8px; font-size: 0.85em; color: var(--gray600); font-weight: 600; cursor: pointer; }
+.chk-row input { width: auto; }
+.btn-row { display: flex; gap: 8px; }
+.btn-row .btn { flex: 1; }
+#appList { display: flex; flex-direction: column; gap: 10px; }
+.app-card { border-left-color: var(--blue); }
+.app-card.sent-card { border-left-color: #4CAF50; background: #f1f8f1; }
+.app-email { font-size: 0.95em; font-weight: 800; color: var(--gray800); word-break: break-all; cursor: pointer; }
+.hint { font-size: 0.78em; color: var(--gray600); margin: -6px 0 12px; line-height: 1.5; }
 </style>
 </head>
 <body>
@@ -356,6 +373,7 @@ input:focus { outline: none; border-color: var(--green); background: white; }
   <div class="tab-bar">
     <button class="tab-btn active" id="tab1" onclick="switchTab(1)">📋 라이선스 목록</button>
     <button class="tab-btn"        id="tab2" onclick="switchTab(2)">🔑 키 발급</button>
+    <button class="tab-btn"        id="tab3" onclick="switchTab(3)">📥 신청자</button>
   </div>
 
   <!-- ── 탭1: 목록 ── -->
@@ -428,6 +446,59 @@ input:focus { outline: none; border-color: var(--green); background: white; }
     </div>
   </div>
 
+  <!-- ── 탭3: 신청자 (라이선스와 별개) ── -->
+  <div id="panel3" style="display:none;">
+
+    <div class="stat-bar">
+      <div class="stat-item"><div class="num" id="apStatTotal">-</div><div class="lbl">전체 신청자</div></div>
+      <div class="stat-item"><div class="num num-blue" id="apStatSent">-</div><div class="lbl">링크 발송</div></div>
+      <div class="stat-item"><div class="num num-orange" id="apStatUnsent">-</div><div class="lbl">미발송</div></div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-title">📥 신청자 기록 추가</div>
+      <div class="hint">Formspree 신청 메일이 오면 메일 속 이메일을 여기에 기록하세요. 기록은 Formspree와 별개로 이 관리자(Firestore)에 계속 남습니다. 라이선스 키는 만들어지지 않습니다.</div>
+      <div class="issue-form">
+        <div class="form-group">
+          <div class="form-label">이메일 <span class="req">*</span></div>
+          <input type="email" id="apEmail" placeholder="example@email.com"
+                 onkeydown="if(event.key==='Enter') addApplicant(false)">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <div class="form-label">신청 종류</div>
+            <input type="text" id="apType" value="Lite 다운로드" maxlength="40">
+          </div>
+          <div class="form-group">
+            <div class="form-label">신청일</div>
+            <input type="date" id="apDate">
+          </div>
+        </div>
+        <label class="chk-row"><input type="checkbox" id="apConsent" checked> Pro 라이선스 안내 수신 동의 (신청 폼의 동의 항목)</label>
+        <div class="msg" id="apMsg"></div>
+        <div class="btn-row">
+          <button class="btn btn-blue"  onclick="addApplicant(false)">💾 기록만</button>
+          <button class="btn btn-green" onclick="addApplicant(true)">📧 기록 + 링크 메일 발송</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="appSearch" placeholder="이메일 / 신청 종류 검색" oninput="renderAppList()">
+      </div>
+      <div class="filter-row">
+        <button class="filter-btn on" id="apFilterAll"    onclick="setAppFilter('all')">전체</button>
+        <button class="filter-btn"    id="apFilterUnsent" onclick="setAppFilter('unsent')">⬜ 미발송</button>
+        <button class="filter-btn"    id="apFilterSent"   onclick="setAppFilter('sent')">✅ 발송됨</button>
+        <button id="refreshBtn" onclick="loadApplicants()" title="새로고침">🔄</button>
+      </div>
+      <div id="appListMsg">불러오는 중...</div>
+      <div id="appList"></div>
+    </div>
+  </div>
+
 </div><!-- /#mainScreen -->
 
 <script>
@@ -482,8 +553,11 @@ function logout() {
 function switchTab(n) {
   document.getElementById('panel1').style.display = n === 1 ? 'block' : 'none';
   document.getElementById('panel2').style.display = n === 2 ? 'block' : 'none';
+  document.getElementById('panel3').style.display = n === 3 ? 'block' : 'none';
   document.getElementById('tab1').className = 'tab-btn' + (n === 1 ? ' active' : '');
   document.getElementById('tab2').className = 'tab-btn' + (n === 2 ? ' active' : '');
+  document.getElementById('tab3').className = 'tab-btn' + (n === 3 ? ' active' : '');
+  if (n === 3) openApplicantTab();
 }
 
 // ── 필터 ───────────────────────────────────────────────────
@@ -799,6 +873,182 @@ function copyText(text) {
 }
 function copyKey() {
   copyText(document.getElementById('newKeyText').textContent);
+}
+// ═══════════════════════════════════════════════════════════
+// ── 신청자(Lite 다운로드) 기록: 라이선스와 별개 (Firestore 'applicants') ──
+// Formspree 신청 메일이 오면 여기에 기록 → Formspree 30일 보관 한도와 상관없이 남음
+// 발송 메일에는 라이선스 키 없이 다운로드 링크만 들어감
+// ═══════════════════════════════════════════════════════════
+let allApplicants = [];
+let appFilter = 'all';
+let appBusy = false;
+
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+const todayStr = () => new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+const appErr = e => (e && e.code === 'permission-denied')
+  ? 'Firestore 규칙에서 applicants 컬렉션이 허용되어 있지 않습니다 (Firebase 콘솔 > Firestore > 규칙)'
+  : ((e && e.message) || e);
+
+function openApplicantTab() {
+  if (!document.getElementById('apDate').value) document.getElementById('apDate').value = todayStr();
+  loadApplicants();
+}
+
+function setAppFilter(f) {
+  appFilter = f;
+  const ids = { all: 'apFilterAll', unsent: 'apFilterUnsent', sent: 'apFilterSent' };
+  Object.values(ids).forEach(id => document.getElementById(id).className = 'filter-btn');
+  document.getElementById(ids[f]).className = 'filter-btn on';
+  renderAppList();
+}
+
+async function loadApplicants() {
+  document.getElementById('appListMsg').textContent = '🔄 불러오는 중...';
+  try {
+    const snap = await db.collection('applicants').orderBy('createdAt', 'desc').get()
+      .catch(() => db.collection('applicants').get());
+    allApplicants = [];
+    snap.forEach(doc => allApplicants.push({ id: doc.id, ...doc.data() }));
+    updateAppStats();
+    renderAppList();
+  } catch (e) {
+    document.getElementById('appListMsg').textContent = '❌ 불러오기 실패: ' + appErr(e);
+  }
+}
+
+function updateAppStats() {
+  const sent = allApplicants.filter(a => a.sentCount > 0).length;
+  document.getElementById('apStatTotal').textContent  = allApplicants.length;
+  document.getElementById('apStatSent').textContent   = sent;
+  document.getElementById('apStatUnsent').textContent = allApplicants.length - sent;
+}
+
+function renderAppList() {
+  const q = (document.getElementById('appSearch').value || '').toLowerCase();
+  let list = [...allApplicants];
+  if (appFilter === 'unsent') list = list.filter(a => !(a.sentCount > 0));
+  if (appFilter === 'sent')   list = list.filter(a => a.sentCount > 0);
+  if (q) list = list.filter(a => (a.email || '').toLowerCase().includes(q) || (a.requestType || '').toLowerCase().includes(q));
+
+  document.getElementById('appListMsg').textContent = `${list.length}명 표시 / 전체 ${allApplicants.length}명`;
+  const box = document.getElementById('appList');
+  box.innerHTML = '';
+  if (!list.length) { box.innerHTML = '<div class="loading">결과가 없습니다.</div>'; return; }
+
+  list.forEach(a => {
+    const sent = a.sentCount > 0;
+    const lastSent = a.lastSentAt ? new Date(a.lastSentAt).toLocaleString('ko-KR') : '';
+    const card = document.createElement('div');
+    card.className = 'lic-card app-card' + (sent ? ' sent-card' : '');
+    card.innerHTML = `
+      <div class="lic-card-header">
+        <div class="app-email" data-action="copy" title="탭하여 복사">${esc(a.email)}</div>
+        <div class="badge-row">
+          <span class="badge badge-perm">${esc(a.requestType || '-')}</span>
+          ${sent ? `<span class="badge badge-active">✅ 발송 ${a.sentCount}회</span>` : '<span class="badge badge-inactive">⬜ 미발송</span>'}
+        </div>
+      </div>
+      <div class="lic-info">📅 신청일 <span>${esc(a.appliedAt || '-')}</span></div>
+      <div class="lic-info">📣 Pro 안내 수신 <span>${a.consent ? '동의' : '미동의'}</span></div>
+      ${lastSent ? `<div class="lic-info">🕐 마지막 발송 <span>${esc(lastSent)}</span></div>` : ''}
+      <div class="lic-actions">
+        <button class="btn-sm btn-sm-blue" data-action="send">📧 ${sent ? '링크 재발송' : '링크 메일 발송'}</button>
+        <button class="btn-sm btn-sm-gray" data-action="copy">📋 이메일 복사</button>
+        <button class="btn-sm btn-sm-red"  data-action="delete">🗑️ 삭제</button>
+      </div>
+      <div class="mail-result" id="apMail_${esc(a.id)}"></div>`;
+    card.addEventListener('click', e => {
+      const action = e.target.dataset.action;
+      if (!action) return;
+      if (action === 'send')   sendLiteMail(a.id);
+      if (action === 'copy')   copyText(a.email);
+      if (action === 'delete') deleteApplicant(a.id);
+    });
+    box.appendChild(card);
+  });
+}
+
+async function addApplicant(sendNow) {
+  if (appBusy) return;
+  const email   = document.getElementById('apEmail').value.trim();
+  const type    = document.getElementById('apType').value.trim() || 'Lite 다운로드';
+  const date    = document.getElementById('apDate').value || todayStr();
+  const consent = document.getElementById('apConsent').checked;
+  const msg     = document.getElementById('apMsg');
+
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+    msg.textContent = '❌ 올바른 이메일을 입력해주세요.'; msg.className = 'msg error'; return;
+  }
+  const dup = allApplicants.find(a => (a.email || '').toLowerCase() === email.toLowerCase());
+  if (dup && !confirm(`이미 기록된 이메일입니다.\n\n${email}\n신청일 ${dup.appliedAt || '-'} / ${dup.sentCount > 0 ? '발송 ' + dup.sentCount + '회' : '미발송'}\n\n그래도 추가할까요?`)) return;
+
+  appBusy = true;
+  msg.textContent = '⏳ 기록 중...'; msg.className = 'msg info';
+  const data = { email, requestType: type, appliedAt: date, consent, sentCount: 0, lastSentAt: '', createdAt: new Date().toISOString() };
+  try {
+    const ref = await db.collection('applicants').add(data);
+    allApplicants.unshift({ id: ref.id, ...data });
+    document.getElementById('apEmail').value = '';
+    document.getElementById('apDate').value  = todayStr();
+    updateAppStats(); renderAppList();
+    msg.textContent = `✅ ${email} 기록 완료`; msg.className = 'msg ok';
+    appBusy = false;
+    if (sendNow) await sendLiteMail(ref.id, true);
+  } catch (e) {
+    msg.textContent = '❌ 기록 실패: ' + appErr(e); msg.className = 'msg error';
+  }
+  appBusy = false;
+}
+
+// 링크 메일 발송 (라이선스 키 없음). EMAILJS_TEMPLATE_LITE 가 비어 있으면 메일 작성창(mailto)을 엽니다.
+async function sendLiteMail(id, skipConfirm) {
+  const a = allApplicants.find(x => x.id === id);
+  if (!a) return;
+  if (!skipConfirm && !confirm(`${a.email} 으로 다운로드 링크를 발송할까요?\n\n${DOWNLOAD_URL}`)) return;
+  const show = (t, c) => { const el = document.getElementById('apMail_' + id); if (el) { el.textContent = t; el.style.display = 'block'; el.style.color = c; } };
+  show('📧 발송 중...', '#1565C0');
+  try {
+    if (EMAILJS_TEMPLATE_LITE) {
+      await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_LITE, {
+        to_email:     a.email,
+        buyer_name:   a.email,
+        request_type: a.requestType || 'Lite 다운로드',
+        download_url: DOWNLOAD_URL,
+        guide_url:    WORSHIP_GUIDE_URL
+      });
+    } else {
+      const subject = '[예배PPT 프로그램] Lite 다운로드 안내드립니다';
+      const body = ['안녕하세요.', '예배PPT 프로그램 Lite를 신청해 주셔서 감사합니다.', '',
+        '아래 링크에서 Lite 버전을 다운로드하실 수 있습니다.', '', '예배PPT 프로그램 Lite', DOWNLOAD_URL, '',
+        '사용 중 궁금한 점이 있으시면 이 메일로 회신해 주세요.', 'Pro 라이선스 안내는 별도로 말씀드리겠습니다.', '', '감사합니다.'].join('\n');
+      window.location.href = `mailto:${encodeURIComponent(a.email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      if (!confirm('메일 작성창에서 메일을 보내셨나요?\n\n[확인] 발송 완료로 기록 / [취소] 기록하지 않음')) {
+        show('발송 기록을 남기지 않았습니다.', '#E65100'); return;
+      }
+    }
+  } catch (err) {
+    show(`❌ 발송 실패: ${err?.text || err?.message || JSON.stringify(err)}`, '#B71C1C');
+    return;
+  }
+  try {
+    const now = new Date().toISOString();
+    await db.collection('applicants').doc(id).update({ sentCount: firebase.firestore.FieldValue.increment(1), lastSentAt: now });
+    a.sentCount = (a.sentCount || 0) + 1; a.lastSentAt = now;
+    updateAppStats(); renderAppList();
+    show(`✅ ${a.email} 발송 완료`, '#2C5F2D');
+  } catch (e) {
+    show(`⚠️ 메일은 보냈지만 발송 기록 저장에 실패했습니다: ${appErr(e)}`, '#E65100');
+  }
+}
+
+async function deleteApplicant(id) {
+  const a = allApplicants.find(x => x.id === id);
+  if (!a || !confirm(`신청자 기록을 삭제하시겠습니까?\n\n${a.email}\n\n삭제 후 복구할 수 없습니다.`)) return;
+  try {
+    await db.collection('applicants').doc(id).delete();
+    allApplicants = allApplicants.filter(x => x.id !== id);
+    updateAppStats(); renderAppList();
+  } catch (e) { alert('삭제 실패: ' + appErr(e)); }
 }
 </script>
 </body>
