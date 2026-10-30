@@ -1,3 +1,4 @@
+<!-- 2026-10-30 19:23 KST | 수정: Firebase 로그인 실패 원인 화면 표시, 평문 ADMIN_PASSWORD 제거(Firebase 계정 로그인 전용) -->
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -520,7 +521,7 @@ try {
   db = firebase.firestore();
 } catch(e) { console.error('Firebase 초기화 실패:', e); }
 
-const ADMIN_PASSWORD = 'Jlozh990604$';
+const ADMIN_PASSWORD = '';   // 보안: 평문 비밀번호 제거. Firebase 관리자 계정 로그인만 사용
 let allLicenses   = [];
 let currentFilter = 'all';
 
@@ -537,11 +538,12 @@ async function login() {
 
   // ① Firebase 관리자 계정으로 로그인 (성공하면 신청자 기록까지 모두 사용 가능)
   let fbOk = false;
+  let fbErr = '';
   try {
     try { await firebase.auth().setPersistence(firebase.auth.Auth.Persistence.SESSION); } catch (e) {}   // 브라우저를 닫으면 로그인 해제
     await firebase.auth().signInWithEmailAndPassword(ADMIN_EMAIL, pw);
     fbOk = true;
-  } catch (e) { /* 계정이 아직 없거나 비밀번호가 다름 → ② 기존 비밀번호 확인 */ }
+  } catch (e) { fbErr = e.code || e.message || String(e); console.error('Firebase 로그인 실패:', e); }
 
   // ② 기존 방식 비밀번호 (Firebase 계정을 만든 뒤에는 ADMIN_PASSWORD 를 '' 로 비워 두세요)
   if (fbOk || (ADMIN_PASSWORD && pw === ADMIN_PASSWORD)) {
@@ -551,7 +553,18 @@ async function login() {
     document.getElementById('logoutBtn').style.display   = 'block';
     loadLicenses();
   } else {
-    msg.textContent = '❌ 비밀번호가 틀렸습니다.';
+    const hints = {
+      'auth/invalid-credential':  '비밀번호가 Firebase 계정과 다릅니다.',
+      'auth/wrong-password':      '비밀번호가 Firebase 계정과 다릅니다.',
+      'auth/invalid-login-credentials': '비밀번호가 Firebase 계정과 다릅니다.',
+      'auth/user-not-found':      'Firebase에 관리자 계정이 없습니다.',
+      'auth/too-many-requests':   '시도 횟수 초과. 잠시 후 다시 시도하세요.',
+      'auth/network-request-failed': '네트워크 오류입니다.',
+      'auth/operation-not-allowed':  'Firebase에서 이메일/비밀번호 로그인이 꺼져 있습니다.',
+      'auth/api-key-not-valid':   'API 키가 올바르지 않거나 도메인 제한에 걸렸습니다.'
+    };
+    const hint = hints[fbErr] || (/referer|blocked/i.test(fbErr) ? 'API 키 도메인 제한에 걸렸습니다 (Google Cloud 콘솔에서 이 페이지 도메인 허용).' : '');
+    msg.textContent = '❌ 로그인 실패 [' + (fbErr || 'unknown') + ']' + (hint ? ' ' + hint : '');
     msg.className = 'msg error';
     document.getElementById('pwInput').value = '';
     document.getElementById('pwInput').focus();
