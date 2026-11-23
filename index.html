@@ -1,4 +1,4 @@
-<!-- 2026-10-30 19:23 KST | 수정: Firebase 로그인 실패 원인 화면 표시, 평문 ADMIN_PASSWORD 제거(Firebase 계정 로그인 전용) -->
+<!-- 2026-11-23 11:05 KST | 수정: 신청자에 교회 이름·전화번호 기록 추가(입력·카드 표시·기존 기록 수정 저장·검색) -->
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -470,6 +470,16 @@ input[type="date"] {
         </div>
         <div class="form-row">
           <div class="form-group">
+            <div class="form-label">교회 이름</div>
+            <input type="text" id="apChurch" placeholder="○○교회" maxlength="40">
+          </div>
+          <div class="form-group">
+            <div class="form-label">전화번호</div>
+            <input type="tel" id="apPhone" placeholder="010-0000-0000" maxlength="13" oninput="formatPhone(this)">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
             <div class="form-label">신청 종류</div>
             <input type="text" id="apType" value="Lite 다운로드" maxlength="40">
           </div>
@@ -490,7 +500,7 @@ input[type="date"] {
     <div class="section-card">
       <div class="search-wrap">
         <span class="search-icon">🔍</span>
-        <input type="text" id="appSearch" placeholder="이메일 / 신청 종류 검색" oninput="renderAppList()">
+        <input type="text" id="appSearch" placeholder="이메일 / 교회 / 전화번호 / 신청 종류 검색" oninput="renderAppList()">
       </div>
       <div class="filter-row">
         <button class="filter-btn on" id="apFilterAll"    onclick="setAppFilter('all')">전체</button>
@@ -969,7 +979,12 @@ function renderAppList() {
   let list = [...allApplicants];
   if (appFilter === 'unsent') list = list.filter(a => !(a.sentCount > 0));
   if (appFilter === 'sent')   list = list.filter(a => a.sentCount > 0);
-  if (q) list = list.filter(a => (a.email || '').toLowerCase().includes(q) || (a.requestType || '').toLowerCase().includes(q));
+  const qd = q.replace(/-/g, '');
+  if (q) list = list.filter(a =>
+    (a.email || '').toLowerCase().includes(q) ||
+    (a.requestType || '').toLowerCase().includes(q) ||
+    (a.church || '').toLowerCase().includes(q) ||
+    (qd && (a.phone || '').replace(/-/g, '').includes(qd)));
 
   document.getElementById('appListMsg').textContent = `${list.length}명 표시 / 전체 ${allApplicants.length}명`;
   const box = document.getElementById('appList');
@@ -989,10 +1004,24 @@ function renderAppList() {
           ${sent ? `<span class="badge badge-active">✅ 발송 ${a.sentCount}회</span>` : '<span class="badge badge-inactive">⬜ 미발송</span>'}
         </div>
       </div>
+      ${a.church ? `<div class="lic-info">⛪ 교회 <span>${esc(a.church)}</span></div>` : ''}
+      ${a.phone ? `<div class="lic-info">📞 전화 <span>${esc(a.phone)}</span></div>` : ''}
       <div class="lic-info">📅 신청일 <span>${esc(a.appliedAt || '-')}</span></div>
       <div class="lic-info">📣 Pro 안내 수신 <span>${a.consent ? '동의' : '미동의'}</span></div>
       ${lastSent ? `<div class="lic-info">🕐 마지막 발송 <span>${esc(lastSent)}</span></div>` : ''}
+      <hr class="divider">
+      <div class="lic-buyer">
+        <div class="lic-buyer-row">
+          <span class="lic-buyer-label">⛪ 교회</span>
+          <input type="text" class="ap-church" value="${esc(a.church || '')}" placeholder="교회 이름" maxlength="40">
+        </div>
+        <div class="lic-buyer-row">
+          <span class="lic-buyer-label">📞 전화</span>
+          <input type="tel" class="ap-phone" value="${esc(a.phone || '')}" placeholder="010-xxxx-xxxx" maxlength="13" oninput="formatPhone(this)">
+        </div>
+      </div>
       <div class="lic-actions">
+        <button class="btn-sm btn-sm-green" data-action="save">💾 저장</button>
         <button class="btn-sm btn-sm-blue" data-action="send">📧 ${sent ? '링크 재발송' : '링크 메일 발송'}</button>
         <button class="btn-sm btn-sm-gray" data-action="copy">📋 이메일 복사</button>
         <button class="btn-sm btn-sm-red"  data-action="delete">🗑️ 삭제</button>
@@ -1004,6 +1033,7 @@ function renderAppList() {
       if (action === 'send')   sendLiteMail(a.id);
       if (action === 'copy')   copyText(a.email);
       if (action === 'delete') deleteApplicant(a.id);
+      if (action === 'save')   saveApplicantInfo(a.id, card.querySelector('.ap-church').value.trim(), card.querySelector('.ap-phone').value.trim());
     });
     box.appendChild(card);
   });
@@ -1015,6 +1045,8 @@ async function addApplicant(sendNow) {
   const type    = document.getElementById('apType').value.trim() || 'Lite 다운로드';
   const date    = document.getElementById('apDate').value || todayStr();
   const consent = document.getElementById('apConsent').checked;
+  const church  = document.getElementById('apChurch').value.trim();
+  const phone   = document.getElementById('apPhone').value.trim();
   const msg     = document.getElementById('apMsg');
 
   if (!appSignedIn()) { msg.textContent = APP_NEED_LOGIN; msg.className = 'msg error'; return; }
@@ -1026,12 +1058,14 @@ async function addApplicant(sendNow) {
 
   appBusy = true;
   msg.textContent = '⏳ 기록 중...'; msg.className = 'msg info';
-  const data = { email, requestType: type, appliedAt: date, consent, sentCount: 0, lastSentAt: '', createdAt: new Date().toISOString() };
+  const data = { email, church, phone, requestType: type, appliedAt: date, consent, sentCount: 0, lastSentAt: '', createdAt: new Date().toISOString() };
   try {
     const ref = await db.collection('applicants').add(data);
     allApplicants.unshift({ id: ref.id, ...data });
-    document.getElementById('apEmail').value = '';
-    document.getElementById('apDate').value  = todayStr();
+    document.getElementById('apEmail').value  = '';
+    document.getElementById('apChurch').value = '';
+    document.getElementById('apPhone').value  = '';
+    document.getElementById('apDate').value   = todayStr();
     updateAppStats(); renderAppList();
     msg.textContent = `✅ ${email} 기록 완료`; msg.className = 'msg ok';
     appBusy = false;
@@ -1081,6 +1115,18 @@ async function sendLiteMail(id, skipConfirm) {
   } catch (e) {
     show(`⚠️ 메일은 보냈지만 발송 기록 저장에 실패했습니다: ${appErr(e)}`, '#E65100');
   }
+}
+
+// 교회 이름·전화번호 저장 (기존 신청자 기록에 나중에 추가/수정)
+async function saveApplicantInfo(id, church, phone) {
+  const a = allApplicants.find(x => x.id === id);
+  if (!a) return;
+  try {
+    await db.collection('applicants').doc(id).update({ church, phone });
+    a.church = church; a.phone = phone;
+    renderAppList();
+    alert('✅ 저장되었습니다.');
+  } catch (e) { alert('저장 실패: ' + appErr(e)); }
 }
 
 async function deleteApplicant(id) {
